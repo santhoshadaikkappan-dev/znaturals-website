@@ -48,9 +48,6 @@ export const AnnouncementBar: React.FC = () => {
     if (active.action === 'stall') {
       const el = document.getElementById('karaikudi-live-stall');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else if (active.action === 'pincode') {
-      const el = document.getElementById('pincode-checker-section');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
     } else {
       const el = document.getElementById('bestsellers');
       if (el) el.scrollIntoView({ behavior: 'smooth' });

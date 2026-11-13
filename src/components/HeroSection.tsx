@@ -52,21 +52,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
               Z NATURALS delivers pure, gentle, and results-driven personal care crafted for everyday elegance.
             </p>
 
-            {/* Karaikudi COD Highlight Callout Banner */}
-            <div className="p-3.5 rounded-xl bg-soft-white border border-warm-sand/80 shadow-botanical flex items-center gap-3.5 max-w-xl">
-              <div className="w-10 h-10 rounded-lg bg-deep-forest/10 flex items-center justify-center flex-shrink-0 text-deep-forest">
-                <Truck className="w-5 h-5 text-deep-forest" />
-              </div>
-              <div className="text-xs">
-                <span className="font-bold text-deep-forest block">
-                  Free Cash on Delivery in Karaikudi
-                </span>
-                <span className="text-charcoal/70">
-                  Daily morning & afternoon delivery slots (8:00 AM – 4:00 PM) directly to your doorstep.
-                </span>
-              </div>
-            </div>
-
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
               {/* Primary CTA */}

@@ -5,11 +5,9 @@ import { Navbar } from './components/Navbar';
 import { VilvahCategoryStrip } from './components/VilvahCategoryStrip';
 import { HeroSection } from './components/HeroSection';
 import { BrandTrustStrip } from './components/BrandTrustStrip';
-import { PincodeBanner } from './components/PincodeBanner';
 import { ShopByConcern } from './components/ShopByConcern';
 import { ShopByCategory } from './components/ShopByCategory';
 import { ProductGrid } from './components/ProductGrid';
-import { AIAdvisorHomepageSection } from './components/AIAdvisorHomepageSection';
 import { LiveStallSection } from './components/LiveStallSection';
 import { BotanicalStorySection } from './components/BotanicalStorySection';
 import { ReviewsSection } from './components/ReviewsSection';
@@ -101,22 +99,19 @@ const MainStoreContent: React.FC = () => {
       {/* 4. Brand Trust Strip (5 Line Icons) */}
       <BrandTrustStrip />
 
-      {/* 5. Karaikudi Pincode Verification Banner */}
-      <PincodeBanner />
-
-      {/* 6. Shop by Concern (Circular Cards) */}
+      {/* 5. Shop by Concern (Circular Cards) */}
       <ShopByConcern
         selectedConcern={selectedConcern}
         onSelectConcern={(c) => setSelectedConcern(c)}
       />
 
-      {/* 7. Shop by Category (Skincare, Haircare, Body Care) */}
+      {/* 6. Shop by Category (Skincare, Haircare, Body Care) */}
       <ShopByCategory
         selectedCategory={selectedCategory}
         onSelectCategory={(cat) => setSelectedCategory(cat)}
       />
 
-      {/* 8. Signature Bestsellers Grid */}
+      {/* 7. Signature Bestsellers Grid */}
       <ProductGrid
         products={filteredProducts}
         selectedCategory={selectedCategory}
@@ -126,10 +121,7 @@ const MainStoreContent: React.FC = () => {
         onOpenAiAdvisor={() => setIsAiAdvisorOpen(true)}
       />
 
-      {/* 9. Interactive Homepage AI Beauty Advisor Section */}
-      <AIAdvisorHomepageSection />
-
-      {/* 10. Karaikudi Weekend Live Stall Section */}
+      {/* 8. Karaikudi Weekend Live Stall Section */}
       <LiveStallSection />
 
       {/* 11. Chettinad Heritage Botanical Story Section */}
