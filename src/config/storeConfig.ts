@@ -16,8 +16,8 @@ export const BRAND_CONFIG = {
   heroHeadline: "Radiant Beauty, Naturally.",
   heroSubheadline: "Botanical Skincare for Timeless Elegance. Pure. Natural. Effective.",
   contact: {
-    phone: "+91 94433 82190",
-    whatsapp: "+91 94433 82190",
+    phone: "+91 93440 87944",
+    whatsapp: "+91 93440 87944",
     email: "care@znaturals.in",
     karaikudiLocation: "Near New Bus Stand, Karaikudi, Tamil Nadu 630001",
   },

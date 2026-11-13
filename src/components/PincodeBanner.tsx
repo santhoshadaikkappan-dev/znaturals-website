@@ -48,7 +48,7 @@ export const PincodeBanner: React.FC = () => {
             
             <p className="text-xs sm:text-sm text-charcoal/75 leading-relaxed">
               We deliver daily between <strong>8:00 AM – 4:00 PM</strong> across all sectors of Karaikudi. 
-              Zero shipping fee, zero prepayment needed.
+              Zero shipping fee, zero prepayment needed. Direct COD Helpline: <strong className="text-deep-forest font-mono">9344087944</strong>.
             </p>
 
             {/* Quick sectors */}

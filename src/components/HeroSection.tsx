@@ -62,7 +62,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
                   Free Cash on Delivery in Karaikudi
                 </span>
                 <span className="text-charcoal/70">
-                  Daily morning & afternoon delivery slots (8:00 AM – 4:00 PM) directly to your doorstep.
+                  Daily morning & afternoon delivery slots (8:00 AM – 4:00 PM) directly to your doorstep. Helpline: <strong className="text-deep-forest font-mono">9344087944</strong>
                 </span>
               </div>
             </div>

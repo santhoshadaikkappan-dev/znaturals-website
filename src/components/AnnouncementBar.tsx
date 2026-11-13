@@ -6,7 +6,7 @@ const MESSAGES = [
   {
     id: 1,
     icon: Truck,
-    text: "Exclusive Free Cash on Delivery (COD) in Karaikudi | Daily Delivery: 8:00 AM – 4:00 PM",
+    text: "Exclusive Free Cash on Delivery (COD) in Karaikudi | Call/WhatsApp: 9344087944 | Daily: 8:00 AM – 4:00 PM",
     badge: "Free Local COD",
     action: "pincode"
   },

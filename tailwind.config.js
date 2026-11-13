@@ -21,11 +21,14 @@ export default {
         'gold-light': '#DFC293',
         'soft-white': '#FFFCF7',
         'charcoal': '#292B27',
+        'vilvah-green': '#8CA062',
+        'vilvah-gold': '#957B38',
       },
       fontFamily: {
         serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
         sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
         editorial: ['"DM Serif Display"', 'serif'],
+        vilvah: ['"Fraunces"', '"DM Serif Display"', 'Georgia', 'serif'],
       },
       boxShadow: {
         'botanical': '0 10px 30px -10px rgba(38, 61, 50, 0.08)',
