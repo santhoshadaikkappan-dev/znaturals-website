@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary Palette (45-25-15) */
+  --botanical-ivory: #F5F0E6;      /* 45% - Main canvas background */
+  --sage-green: #66765C;           /* 25% - Secondary sections, badges */
+  --deep-forest-green: #263D32;    /* 15% - Primary CTAs, headings */
+
+  /* Secondary Palette (10% combined) */
+  --warm-sand: #D9CBB5;
+  --muted-blush: #D9B9AE;
+  --soft-olive: #A4A486;
+  --cocoa-brown: #705B49;
+
+  /* Accent Palette (5% combined) */
+  --champagne-gold: #C5A16B;
+  --soft-white: #FFFCF7;
+  --charcoal: #292B27;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F0E6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #66765C88;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #263D32;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #F5F0E6;
+  color: #292B27;
+}
+
+/* Typography Utility Classes */
+.font-cormorant {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-manrope {
+  font-family: 'Manrope', sans-serif;
+}
+
+.font-dm-serif {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-style: italic;
+}
+
+/* Vilvah-style Card & Hover Transitions */
+.botanical-card {
+  background-color: #FFFCF7;
+  border: 1px solid rgba(217, 203, 181, 0.5);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.botanical-card:hover {
+  transform: translateY(-4px);
+  border-color: #C5A16B;
+  box-shadow: 0 16px 32px -10px rgba(38, 61, 50, 0.12);
+}
+
+/* Gold Foil Shimmer Animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #C5A16B 0%, #E6C894 50%, #B89154 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
