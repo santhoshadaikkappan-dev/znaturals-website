@@ -56,7 +56,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <a href="#bestsellers" className="hover:text-champagne-gold transition-colors">
-                  Chettinad Hair Oils & Shampoos
+                  Botanical Hair Oils & Shampoos
                 </a>
               </li>
               <li>

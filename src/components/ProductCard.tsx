@@ -1,6 +1,6 @@
 import React from 'react';
 import { Product } from '../types';
-import { Star, Eye } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 interface ProductCardProps {
@@ -14,28 +14,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     ((product.originalPrice - product.price) / product.originalPrice) * 100
   );
 
-  // Vilvah-style badge color coding
-  const getBadgeStyle = () => {
-    switch (product.badge) {
+  // Vilvah-style badge color coding as shown in Image 1 & 4
+  const getBadgeStyle = (badge?: string) => {
+    switch (badge) {
       case 'Bestseller':
-        return 'bg-[#DF9B35] text-white'; // Warm mustard/orange like "Viral Serum"
+        return 'bg-amber-600 text-white';
       case 'New Launch':
-        return 'bg-[#825227] text-white'; // Cocoa brown like "New Launch"
+        return 'bg-[#705B49] text-white';
       case 'Customer Favorite':
-        return 'bg-[#F26422] text-white'; // Coral orange like "GenZ Favourite"
+        return 'bg-[#E05A3E] text-white';
       case 'Pure Botanical':
+        return 'bg-[#66765C] text-white';
       default:
-        return 'bg-[#8CA062] text-white'; // Sage green like "FLAT 20% off"
+        return 'bg-deep-forest text-botanical-ivory';
     }
   };
 
   return (
-    <div className="bg-soft-white rounded-2xl overflow-hidden flex flex-col justify-between border border-warm-sand/60 hover:border-champagne-gold hover:shadow-botanical transition-all duration-300 group">
+    <div className="bg-soft-white rounded-2xl overflow-hidden flex flex-col border border-warm-sand/60 hover:border-champagne-gold hover:shadow-botanical transition-all duration-300 group">
       
-      {/* Product Image Container (Vilvah Square Rounded) */}
+      {/* Top Image Container */}
       <div 
         onClick={() => setActiveProductModal(product)}
-        className="relative aspect-square w-full overflow-hidden bg-[#F7F4EE] cursor-pointer"
+        className="relative aspect-square overflow-hidden bg-warm-sand/20 cursor-pointer"
       >
         <img
           src={product.image}
@@ -44,75 +45,69 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           loading="lazy"
         />
 
-        {/* Top-Left Vilvah Badge */}
-        {product.badge && (
-          <div className="absolute top-2.5 left-2.5 z-10">
-            <span className={`px-2 py-0.5 rounded-sm text-[10px] sm:text-[11px] font-bold tracking-wide uppercase shadow-sm ${getBadgeStyle()}`}>
+        {/* Top Badges (Matching Vilvah Store Image 1 & Image 4) */}
+        <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none gap-1">
+          {product.badge && (
+            <span className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold tracking-tight shadow-sm ${getBadgeStyle(product.badge)}`}>
               {product.badge}
             </span>
-          </div>
-        )}
-
-        {/* Hover Quick View Trigger */}
-        <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex items-center justify-center p-3">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveProductModal(product);
-            }}
-            className="px-3.5 py-1.5 rounded-full bg-white/95 text-deep-forest font-semibold text-xs flex items-center gap-1.5 shadow-md hover:bg-white transition-all transform translate-y-1 group-hover:translate-y-0"
-          >
-            <Eye className="w-3.5 h-3.5 text-champagne-gold" />
-            <span>Quick View</span>
-          </button>
+          )}
+          {discountPercent > 0 && (
+            <span className="ml-auto px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold bg-[#8CA174] text-white shadow-sm">
+              FLAT {discountPercent}% off
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Product Details Section (Exact Vilvah Mobile Sizing) */}
+      {/* Card Body - Proportions strictly tuned for 2-column mobile and desktop */}
       <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between">
         <div>
-          {/* Star Rating Line */}
-          <div className="flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-charcoal/80 mb-1">
-            <Star className="w-3.5 h-3.5 fill-[#ECA43B] text-[#ECA43B]" />
-            <span className="font-bold">{product.rating}</span>
-            <span className="text-[10px] sm:text-[11px] text-charcoal/50">
-              ({product.reviewCount} Ratings)
+          {/* Star rating (Matching Image 1 & 4: ★ 4.8 (2621 Ratings)) */}
+          <div className="flex items-center gap-1 text-[11px] sm:text-xs text-charcoal/70 mb-1">
+            <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-500 text-amber-500" />
+            <span className="font-bold text-charcoal">{product.rating}</span>
+            <span className="text-charcoal/50 text-[10px] sm:text-xs">
+              ({product.reviewCount})
             </span>
           </div>
 
-          {/* Product Title */}
+          {/* Product Title (2-line clamp, clean Vilvah font) */}
           <h3 
             onClick={() => setActiveProductModal(product)}
-            className="font-sans font-bold text-xs sm:text-sm text-charcoal group-hover:text-[#66765C] transition-colors cursor-pointer line-clamp-1 leading-snug"
-            title={product.name}
+            className="font-bold text-xs sm:text-sm text-deep-forest group-hover:text-sage-green transition-colors cursor-pointer line-clamp-2 leading-snug min-h-[2rem] sm:min-h-[2.5rem]"
           >
             {product.name}
           </h3>
 
-          {/* Subtitle / Key Benefit */}
-          <p className="font-sans text-[10px] sm:text-xs text-charcoal/60 line-clamp-1 mt-0.5 leading-snug">
-            {product.tagline}
+          {/* Subtitle / Short Benefit Line (Matching "Fades Dark Spots In 4 Weeks" in Image 1 & 4) */}
+          <p className="text-[10px] sm:text-xs text-charcoal/60 line-clamp-1 mt-0.5 sm:mt-1">
+            {product.benefits[0] || product.tagline}
           </p>
         </div>
 
-        {/* Price & Add To Cart Button */}
-        <div className="mt-2 pt-2 border-t border-warm-sand/30">
-          <div className="flex items-baseline gap-1.5 mb-2 font-sans">
-            <span className="font-extrabold text-sm sm:text-base text-charcoal">
+        {/* Pricing & Add To Cart Button */}
+        <div className="mt-2 sm:mt-3 pt-2 border-t border-warm-sand/30">
+          <div className="flex items-baseline gap-1.5 mb-2">
+            <span className="font-sans font-extrabold text-sm sm:text-base text-deep-forest">
               ₹{product.price}
             </span>
-            <span className="text-[11px] sm:text-xs text-charcoal/40 line-through">
-              ₹{product.originalPrice}
-            </span>
-            <span className="text-[9px] sm:text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1 py-0.2 rounded ml-auto">
-              {discountPercent}% OFF
-            </span>
+            {product.originalPrice > product.price && (
+              <>
+                <span className="text-[10px] sm:text-xs text-charcoal/40 line-through">
+                  ₹{product.originalPrice}
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded hidden sm:inline">
+                  {discountPercent}% OFF
+                </span>
+              </>
+            )}
           </div>
 
-          {/* Vilvah Solid Green Button */}
+          {/* Full-width Vilvah-style Olive Sage Green Button (Matching Image 1 & 4) */}
           <button
             onClick={() => addToCart(product, 1)}
-            className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-[#8CA062] hover:bg-[#788C4E] active:scale-[0.98] text-white font-sans font-bold text-[11px] sm:text-xs tracking-wide transition-all shadow-sm flex items-center justify-center cursor-pointer"
+            className="w-full py-1.5 sm:py-2.5 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-[#8CA174] hover:bg-[#7D9366] active:scale-[0.98] text-white font-sans font-bold text-xs sm:text-sm transition-all shadow-sm text-center"
           >
             Add To Cart
           </button>

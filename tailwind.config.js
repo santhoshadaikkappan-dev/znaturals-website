@@ -21,30 +21,16 @@ export default {
         'gold-light': '#DFC293',
         'soft-white': '#FFFCF7',
         'charcoal': '#292B27',
-        'vilvah-green': '#8CA062',
-        'vilvah-gold': '#957B38',
       },
       fontFamily: {
-        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        serif: ['"Fraunces"', '"DM Serif Display"', '"Cormorant Garamond"', 'Georgia', 'serif'],
+        editorial: ['"Fraunces"', '"DM Serif Display"', 'Georgia', 'serif'],
         sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
-        editorial: ['"DM Serif Display"', 'serif'],
-        vilvah: ['"Fraunces"', '"DM Serif Display"', 'Georgia', 'serif'],
       },
       boxShadow: {
-        'botanical': '0 10px 30px -10px rgba(38, 61, 50, 0.08)',
-        'botanical-lg': '0 20px 40px -15px rgba(38, 61, 50, 0.12)',
-        'gold-glow': '0 0 20px rgba(197, 161, 107, 0.3)',
+        'botanical': '0 8px 24px -6px rgba(38, 61, 50, 0.08)',
+        'botanical-lg': '0 16px 36px -10px rgba(38, 61, 50, 0.12)',
       },
-      animation: {
-        'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'marquee': 'marquee 25s linear infinite',
-      },
-      keyframes: {
-        marquee: {
-          '0%': { transform: 'translateX(0%)' },
-          '100%': { transform: 'translateX(-50%)' },
-        }
-      }
     },
   },
   plugins: [],

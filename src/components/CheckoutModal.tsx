@@ -157,6 +157,13 @@ export const CheckoutModal: React.FC = () => {
                   <span className="font-bold text-deep-forest">+91 {completedOrder.phone}</span>
                 </div>
 
+                <div className="flex justify-between items-center">
+                  <span className="text-charcoal/60">Karaikudi Dispatch Helpline:</span>
+                  <a href="tel:9344087944" className="font-bold text-deep-forest hover:underline font-mono">
+                    +91 9344087944
+                  </a>
+                </div>
+
                 <div className="border-t border-warm-sand pt-3 space-y-1">
                   <span className="font-bold text-deep-forest uppercase tracking-wider text-[10px]">
                     Ordered Items:
@@ -294,7 +301,7 @@ export const CheckoutModal: React.FC = () => {
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. 93440 87944"
+                      placeholder="e.g. 98421 00000"
                       className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
                     />
                   </div>

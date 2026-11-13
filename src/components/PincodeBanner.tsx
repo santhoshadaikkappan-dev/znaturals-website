@@ -48,7 +48,7 @@ export const PincodeBanner: React.FC = () => {
             
             <p className="text-xs sm:text-sm text-charcoal/75 leading-relaxed">
               We deliver daily between <strong>8:00 AM – 4:00 PM</strong> across all sectors of Karaikudi. 
-              Zero shipping fee, zero prepayment needed. Direct COD Helpline: <strong className="text-deep-forest font-mono">9344087944</strong>.
+              Zero shipping fee, zero prepayment needed.
             </p>
 
             {/* Quick sectors */}
@@ -65,6 +65,13 @@ export const PincodeBanner: React.FC = () => {
                   {kPin}
                 </button>
               ))}
+              {/* Karaikudi COD Direct Contact */}
+              <div className="pt-2 flex items-center gap-2 text-xs text-charcoal/80">
+                <span className="font-semibold text-deep-forest">Free COD Helpline / WhatsApp:</span>
+                <a href="tel:9344087944" className="font-bold text-deep-forest font-mono underline hover:text-sage-green">
+                  9344087944
+                </a>
+              </div>
             </div>
           </div>
 

@@ -18,7 +18,7 @@ const CATEGORIES = [
   },
   {
     id: 'Haircare' as ProductCategory,
-    title: 'Herbal Haircare',
+    title: 'Botanical Haircare',
     subtitle: 'Strengthen & Volumize',
     description: 'Slow-cooked amla-bhringraj oils and mild herbal shampoo infusions.',
     image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=700&q=80',
