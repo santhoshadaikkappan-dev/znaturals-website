@@ -1,35 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, Sparkles, ChevronLeft, ChevronRight, MapPin, Tag } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
-const MESSAGES = [
+const PROMO_SLIDES = [
   {
     id: 1,
-    icon: Tag,
-    text: "Product Of The Month : Botanical Glow Face Serum | Use code - HURRY20 and Get FLAT 20% OFF",
-    highlight: "FLAT 20% OFF",
+    line1: "Product Of The Month : Botanical Glow Face Serum",
+    line2: "Use code - HURRY20 and Get FLAT 20% OFF",
     action: "bestsellers"
   },
   {
     id: 2,
-    icon: Truck,
-    text: "Exclusive Free Cash on Delivery (COD) in Karaikudi | Daily Delivery: 8:00 AM – 4:00 PM | Helpline: 9344087944",
-    highlight: "Free Local COD",
+    line1: "Exclusive Free Cash on Delivery (COD) in Karaikudi",
+    line2: "Daily Express Delivery: 8:00 AM – 4:00 PM | Helpline: 9344087944",
     action: "pincode"
   },
   {
     id: 3,
-    icon: MapPin,
-    text: "Visit Our Weekend Live Experience Stall in Karaikudi | Fri – Sun: 5:30 PM – 9:30 PM",
-    highlight: "Weekend Stall",
+    line1: "Visit Our Weekend Live Experience Stall in Karaikudi",
+    line2: "Every Fri – Sun: 5:30 PM – 9:30 PM | Try Fresh Samples",
     action: "stall"
-  },
-  {
-    id: 4,
-    icon: Sparkles,
-    text: "Pure Chettinad Botanical Formulations • 100% Safe, Chemical-Free & Cruelty-Free",
-    highlight: "100% Botanical",
-    action: "story"
   }
 ];
 
@@ -38,59 +28,60 @@ export const AnnouncementBar: React.FC = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % MESSAGES.length);
+      setCurrentIndex((prev) => (prev + 1) % PROMO_SLIDES.length);
     }, 4500);
     return () => clearInterval(timer);
   }, []);
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentIndex((prev) => (prev - 1 + MESSAGES.length) % MESSAGES.length);
+    setCurrentIndex((prev) => (prev - 1 + PROMO_SLIDES.length) % PROMO_SLIDES.length);
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentIndex((prev) => (prev + 1) % MESSAGES.length);
+    setCurrentIndex((prev) => (prev + 1) % PROMO_SLIDES.length);
   };
 
   const handleBarClick = () => {
-    const active = MESSAGES[currentIndex];
+    const active = PROMO_SLIDES[currentIndex];
     if (active.action === 'stall') {
       const el = document.getElementById('karaikudi-live-stall');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     } else if (active.action === 'pincode') {
       const el = document.getElementById('pincode-checker-section');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else if (active.action === 'bestsellers') {
+    } else {
       const el = document.getElementById('bestsellers');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else if (active.action === 'story') {
-      const el = document.getElementById('brand-story');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const currentMsg = MESSAGES[currentIndex];
+  const current = PROMO_SLIDES[currentIndex];
 
   return (
     <div 
-      className="bg-[#9B4817] text-white text-[11px] sm:text-xs py-2 px-3 sm:px-6 relative select-none cursor-pointer overflow-hidden transition-colors hover:bg-[#863D13] font-sans"
+      className="bg-[#A35212] text-white text-xs py-2 px-3 sm:px-6 relative select-none cursor-pointer transition-colors hover:bg-[#8F470F] z-50 border-b border-black/10 shadow-xs"
       onClick={handleBarClick}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
+        
         {/* Left Arrow (Image 1 style) */}
         <button 
           onClick={handlePrev}
           aria-label="Previous announcement"
-          className="p-1 text-white/90 hover:text-white transition-colors focus:outline-none"
+          className="p-1 hover:text-white/80 transition-colors focus:outline-none flex-shrink-0"
         >
-          <ChevronLeft className="w-3.5 h-3.5" />
+          <ChevronLeft className="w-4 h-4 text-white/90" />
         </button>
 
-        {/* Center Text Banner */}
-        <div className="flex items-center justify-center gap-2 text-center px-2 overflow-hidden">
-          <span className="font-semibold tracking-wide truncate max-w-[300px] sm:max-w-lg md:max-w-3xl text-white">
-            {currentMsg.text}
+        {/* Center Two-Line Text (Exact from Image 1) */}
+        <div className="flex flex-col items-center justify-center text-center px-2 overflow-hidden leading-tight animate-fadeIn">
+          <span className="font-semibold text-[11px] sm:text-xs tracking-wide text-white">
+            {current.line1}
+          </span>
+          <span className="font-medium text-[10px] sm:text-[11px] text-white/90 mt-0.5 tracking-wider">
+            {current.line2}
           </span>
         </div>
 
@@ -98,12 +89,12 @@ export const AnnouncementBar: React.FC = () => {
         <button 
           onClick={handleNext}
           aria-label="Next announcement"
-          className="p-1 text-white/90 hover:text-white transition-colors focus:outline-none"
+          className="p-1 hover:text-white/80 transition-colors focus:outline-none flex-shrink-0"
         >
-          <ChevronRight className="w-3.5 h-3.5" />
+          <ChevronRight className="w-4 h-4 text-white/90" />
         </button>
+
       </div>
     </div>
   );
 };
-
