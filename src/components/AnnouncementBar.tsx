@@ -1,34 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, Sparkles, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { Truck, Sparkles, ChevronLeft, ChevronRight, MapPin, Tag } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 const MESSAGES = [
   {
     id: 1,
-    icon: Truck,
-    text: "Exclusive Free Cash on Delivery (COD) in Karaikudi | Helpline: 9344087944 | Daily: 8:00 AM – 4:00 PM",
-    badge: "Free Local COD",
-    action: "pincode"
+    icon: Tag,
+    text: "Product Of The Month : Botanical Glow Face Serum | Use code - HURRY20 and Get FLAT 20% OFF",
+    highlight: "FLAT 20% OFF",
+    action: "bestsellers"
   },
   {
     id: 2,
-    icon: MapPin,
-    text: "Visit Our Weekend Live Experience Stall in Karaikudi | Fri – Sun: 5:30 PM – 9:30 PM",
-    badge: "Live Stall",
-    action: "stall"
+    icon: Truck,
+    text: "Exclusive Free Cash on Delivery (COD) in Karaikudi | Daily Delivery: 8:00 AM – 4:00 PM | Helpline: 9344087944",
+    highlight: "Free Local COD",
+    action: "pincode"
   },
   {
     id: 3,
+    icon: MapPin,
+    text: "Visit Our Weekend Live Experience Stall in Karaikudi | Fri – Sun: 5:30 PM – 9:30 PM",
+    highlight: "Weekend Stall",
+    action: "stall"
+  },
+  {
+    id: 4,
     icon: Sparkles,
-    text: "Chettinad Botanical Formulations • 100% Pure, Safe & Cruelty-Free",
-    badge: "100% Pure",
+    text: "Pure Chettinad Botanical Formulations • 100% Safe, Chemical-Free & Cruelty-Free",
+    highlight: "100% Botanical",
     action: "story"
   }
 ];
 
 export const AnnouncementBar: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { setCustomerPincode } = useStore();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -55,6 +61,9 @@ export const AnnouncementBar: React.FC = () => {
     } else if (active.action === 'pincode') {
       const el = document.getElementById('pincode-checker-section');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else if (active.action === 'bestsellers') {
+      const el = document.getElementById('bestsellers');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
     } else if (active.action === 'story') {
       const el = document.getElementById('brand-story');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -62,42 +71,34 @@ export const AnnouncementBar: React.FC = () => {
   };
 
   const currentMsg = MESSAGES[currentIndex];
-  const Icon = currentMsg.icon;
 
   return (
     <div 
-      className="bg-deep-forest text-botanical-ivory text-xs py-2 px-3 relative border-b border-champagne-gold/30 cursor-pointer select-none overflow-hidden transition-colors hover:bg-deep-forest-dark"
+      className="bg-[#9B4817] text-white text-[11px] sm:text-xs py-2 px-3 sm:px-6 relative select-none cursor-pointer overflow-hidden transition-colors hover:bg-[#863D13] font-sans"
       onClick={handleBarClick}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Left Arrow */}
+        {/* Left Arrow (Image 1 style) */}
         <button 
           onClick={handlePrev}
           aria-label="Previous announcement"
-          className="p-1 hover:text-champagne-gold transition-colors focus:outline-none"
+          className="p-1 text-white/90 hover:text-white transition-colors focus:outline-none"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
         </button>
 
         {/* Center Text Banner */}
-        <div className="flex items-center justify-center gap-2 text-center px-4 overflow-hidden">
-          <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase font-semibold bg-champagne-gold/20 text-champagne-gold border border-champagne-gold/40">
-            {currentMsg.badge}
-          </span>
-          <Icon className="w-3.5 h-3.5 text-champagne-gold flex-shrink-0 animate-pulse" />
-          <span className="font-medium tracking-wide truncate max-w-[280px] sm:max-w-md md:max-w-2xl">
+        <div className="flex items-center justify-center gap-2 text-center px-2 overflow-hidden">
+          <span className="font-semibold tracking-wide truncate max-w-[300px] sm:max-w-lg md:max-w-3xl text-white">
             {currentMsg.text}
-          </span>
-          <span className="text-[11px] underline text-champagne-gold/90 ml-1 hidden lg:inline hover:text-white">
-            Learn More
           </span>
         </div>
 
-        {/* Right Arrow */}
+        {/* Right Arrow (Image 1 style) */}
         <button 
           onClick={handleNext}
           aria-label="Next announcement"
-          className="p-1 hover:text-champagne-gold transition-colors focus:outline-none"
+          className="p-1 text-white/90 hover:text-white transition-colors focus:outline-none"
         >
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
@@ -105,3 +106,4 @@ export const AnnouncementBar: React.FC = () => {
     </div>
   );
 };
+

@@ -106,89 +106,188 @@ export const Navbar: React.FC<NavbarProps> = ({
             />
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-7">
-            {/* Shop by Category with Dropdown */}
+          {/* Desktop Navigation (Exact Vilvah hierarchy from Image 1) */}
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-6 text-[13px] font-medium text-charcoal">
+            
+            {/* 1. Bestsellers */}
+            <a 
+              href="#bestsellers"
+              onClick={() => onSelectCategory(null)}
+              className="hover:text-deep-forest font-semibold transition-colors py-2"
+            >
+              Bestsellers
+            </a>
+
+            {/* 2. Hair with Dropdown */}
             <div 
               className="relative group"
               onMouseEnter={() => setCategoryDropdownOpen(true)}
               onMouseLeave={() => setCategoryDropdownOpen(false)}
             >
-              <button className="flex items-center gap-1.5 text-sm font-semibold text-deep-forest hover:text-sage-green transition-colors py-2 uppercase tracking-wider">
-                <span>Shop Category</span>
-                <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" />
+              <button 
+                onClick={() => handleNavCategory('Haircare')}
+                className="flex items-center gap-1 hover:text-deep-forest font-semibold transition-colors py-2"
+              >
+                <span>Hair</span>
+                <ChevronDown className="w-3 h-3 transition-transform group-hover:rotate-180 text-charcoal/60" />
               </button>
 
-              {categoryDropdownOpen && (
-                <div className="absolute top-full left-0 w-52 bg-soft-white shadow-botanical-lg border border-warm-sand/60 rounded-xl py-2 mt-0 z-50">
-                  <button 
-                    onClick={() => handleNavCategory(null)}
-                    className="w-full text-left px-4 py-2.5 text-sm text-charcoal hover:bg-botanical-ivory hover:text-deep-forest font-medium flex items-center justify-between"
-                  >
-                    <span>All Products</span>
-                    <span className="text-xs text-sage-green font-mono">View All</span>
-                  </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => handleNavCategory(cat)}
-                      className="w-full text-left px-4 py-2 text-sm text-charcoal hover:bg-botanical-ivory hover:text-deep-forest transition-colors"
-                    >
-                      {cat === 'Haircare' ? 'Botanical Haircare' : cat}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="absolute top-full left-0 w-48 bg-white shadow-botanical-lg border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 hidden group-hover:block animate-fadeIn">
+                <button 
+                  onClick={() => handleNavCategory('Haircare')}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest font-medium"
+                >
+                  All Haircare
+                </button>
+                <button 
+                  onClick={() => handleNavConcern('Hair Fall')}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest"
+                >
+                  Hair Growth & Oil
+                </button>
+                <button 
+                  onClick={() => handleNavConcern('Dandruff')}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest"
+                >
+                  Anti-Dandruff Shampoos
+                </button>
+              </div>
             </div>
 
-            {/* Shop by Concern with Dropdown */}
-            <div 
-              className="relative group"
-              onMouseEnter={() => setConcernDropdownOpen(true)}
-              onMouseLeave={() => setConcernDropdownOpen(false)}
+            {/* 3. Face with Dropdown */}
+            <div className="relative group">
+              <button 
+                onClick={() => handleNavCategory('Skincare')}
+                className="flex items-center gap-1 hover:text-deep-forest font-semibold transition-colors py-2"
+              >
+                <span>Face</span>
+                <ChevronDown className="w-3 h-3 transition-transform group-hover:rotate-180 text-charcoal/60" />
+              </button>
+
+              <div className="absolute top-full left-0 w-48 bg-white shadow-botanical-lg border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 hidden group-hover:block animate-fadeIn">
+                <button 
+                  onClick={() => handleNavCategory('Skincare')}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest font-medium"
+                >
+                  All Face Care
+                </button>
+                <button 
+                  onClick={() => handleNavConcern('Acne & Blemishes')}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest"
+                >
+                  Acne & Glow Serums
+                </button>
+                <button 
+                  onClick={() => handleNavConcern('Pigmentation')}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest"
+                >
+                  Nourishing Creams
+                </button>
+              </div>
+            </div>
+
+            {/* 4. Body with Dropdown */}
+            <div className="relative group">
+              <button 
+                onClick={() => handleNavCategory('Body Care')}
+                className="flex items-center gap-1 hover:text-deep-forest font-semibold transition-colors py-2"
+              >
+                <span>Body</span>
+                <ChevronDown className="w-3 h-3 transition-transform group-hover:rotate-180 text-charcoal/60" />
+              </button>
+
+              <div className="absolute top-full left-0 w-48 bg-white shadow-botanical-lg border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 hidden group-hover:block animate-fadeIn">
+                <button 
+                  onClick={() => handleNavCategory('Body Care')}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest font-medium"
+                >
+                  All Body Care
+                </button>
+                <button 
+                  onClick={() => handleNavConcern('Dry Skin')}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest"
+                >
+                  Botanical Lotions
+                </button>
+                <button 
+                  onClick={() => handleNavConcern('Daily Glow')}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest"
+                >
+                  Ubtan Bath Powders
+                </button>
+              </div>
+            </div>
+
+            {/* 5. Milk Range with Dropdown */}
+            <div className="relative group">
+              <button 
+                onClick={() => handleNavCategory(null)}
+                className="flex items-center gap-1 hover:text-deep-forest font-semibold transition-colors py-2"
+              >
+                <span>Milk Range</span>
+                <ChevronDown className="w-3 h-3 transition-transform group-hover:rotate-180 text-charcoal/60" />
+              </button>
+              <div className="absolute top-full left-0 w-48 bg-white shadow-botanical-lg border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 hidden group-hover:block animate-fadeIn">
+                <button 
+                  onClick={() => handleNavCategory(null)}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest font-medium"
+                >
+                  Milk Drops Brightening
+                </button>
+                <button 
+                  onClick={() => handleNavCategory(null)}
+                  className="w-full text-left px-4 py-2 text-xs text-charcoal hover:bg-botanical-ivory hover:text-deep-forest"
+                >
+                  Milk Powder Cleanser
+                </button>
+              </div>
+            </div>
+
+            {/* 6. Combos */}
+            <button 
+              onClick={() => handleNavCategory(null)}
+              className="hover:text-deep-forest font-semibold transition-colors py-2"
             >
-              <button className="flex items-center gap-1.5 text-sm font-semibold text-deep-forest hover:text-sage-green transition-colors py-2 uppercase tracking-wider">
-                <span>Shop Concern</span>
-                <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" />
-              </button>
+              Combos
+            </button>
 
-              {concernDropdownOpen && (
-                <div className="absolute top-full left-0 w-64 bg-soft-white shadow-botanical-lg border border-warm-sand/60 rounded-xl p-3 mt-0 z-50 grid gap-1">
-                  <div className="text-[10px] font-bold text-sage-green uppercase tracking-wider px-2 py-1">
-                    Select Your Concern
-                  </div>
-                  {CONCERN_LIST.map((concern) => (
-                    <button
-                      key={concern.id}
-                      onClick={() => handleNavConcern(concern.id)}
-                      className="w-full text-left px-3 py-2 rounded-lg text-sm text-charcoal hover:bg-botanical-ivory hover:text-deep-forest transition-all flex items-center justify-between group/item"
-                    >
-                      <span className="font-medium">{concern.name}</span>
-                      <span className="text-[11px] text-sage-green opacity-75 group-hover/item:opacity-100">
-                        {concern.tagline}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
+            {/* 7. Gift Sets (with "New" Red Badge from Image 1) */}
+            <div className="relative">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#B3261E] text-white text-[9px] font-bold px-2 py-0.2 rounded-full uppercase tracking-tighter shadow-xs">
+                New
+              </span>
+              <button 
+                onClick={() => handleNavCategory(null)}
+                className="hover:text-deep-forest font-semibold transition-colors py-2"
+              >
+                Gift Sets
+              </button>
             </div>
 
-            {/* Karaikudi Weekend Live Stall Link */}
+            {/* 8. Shop All */}
+            <button 
+              onClick={() => handleNavCategory(null)}
+              className="hover:text-deep-forest font-semibold transition-colors py-2"
+            >
+              Shop All
+            </button>
+
+            {/* 9. About us */}
             <a 
-              href="#karaikudi-live-stall"
-              className="text-sm font-semibold text-deep-forest hover:text-sage-green uppercase tracking-wider transition-colors"
+              href="#brand-story"
+              className="hover:text-deep-forest font-semibold transition-colors py-2"
             >
-              Weekend Stall
+              About us
             </a>
 
-            {/* AI Beauty Advisor Pill Button */}
-            <button
-              onClick={() => setIsAiAdvisorOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sage-green/15 text-deep-forest border border-sage-green/30 hover:bg-sage-green hover:text-white transition-all text-xs font-semibold tracking-wide shadow-sm group"
+            {/* 10. Blog / Weekend Stall */}
+            <a 
+              href="#karaikudi-live-stall"
+              className="hover:text-deep-forest font-semibold transition-colors py-2"
             >
-              <Sparkles className="w-3.5 h-3.5 text-champagne-gold group-hover:text-yellow-200 transition-colors" />
-              <span>AI Beauty Advisor</span>
-            </button>
+              Blog
+            </a>
+
           </nav>
 
           {/* Right Action Icons & Badges */}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StoreProvider, useStore } from './context/StoreContext';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { Navbar } from './components/Navbar';
+import { TopCategoryPillStrip } from './components/TopCategoryPillStrip';
 import { HeroSection } from './components/HeroSection';
 import { BrandTrustStrip } from './components/BrandTrustStrip';
 import { PincodeBanner } from './components/PincodeBanner';
@@ -87,7 +88,13 @@ const MainStoreContent: React.FC = () => {
         onSelectConcern={(con) => setSelectedConcern(con as SkinOrHairConcern | null)}
       />
 
-      {/* 3. Hero Editorial Section */}
+      {/* 3. Vilvah-Style Top Visual Category Strip (Exact Image 1 layout at top) */}
+      <TopCategoryPillStrip
+        onSelectCategory={(cat) => setSelectedCategory(cat)}
+        onSelectConcern={(con) => setSelectedConcern(con)}
+      />
+
+      {/* 4. Hero Editorial Section (Existing content below top strip) */}
       <HeroSection onExploreClick={scrollToBestsellers} />
 
       {/* 4. Brand Trust Strip (5 Line Icons) */}
