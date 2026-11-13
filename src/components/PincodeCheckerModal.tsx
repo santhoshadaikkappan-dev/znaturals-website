@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { X, MapPin, Truck, CheckCircle2, AlertCircle, Phone, ArrowRight } from 'lucide-react';
+import { X, MapPin, Truck, CheckCircle2, Phone, Compass, ShieldCheck } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { KARAIKUDI_PINCODES } from '../config/storeConfig';
+import { detectCurrentLocation } from '../utils/geolocation';
+import { DeliveryCalculation } from '../utils/delivery';
 
 interface PincodeCheckerModalProps {
   isOpen: boolean;
@@ -12,47 +14,38 @@ export const PincodeCheckerModal: React.FC<PincodeCheckerModalProps> = ({
   isOpen,
   onClose
 }) => {
-  const { customerPincode, verifyPincode, isPincodeEligible, addToWaitlist } = useStore();
+  const { customerPincode, verifyPincode, deliveryInfo, setCustomerCity, setCustomerState } = useStore();
 
   const [inputPincode, setInputPincode] = useState(customerPincode);
-  const [result, setResult] = useState<{ checked: boolean; eligible: boolean; message: string }>({
-    checked: true,
-    eligible: isPincodeEligible,
-    message: isPincodeEligible
-      ? 'Eligible for FREE Karaikudi Cash on Delivery (Delivered Daily between 8:00 AM – 4:00 PM)'
-      : 'Free COD is currently available only in Karaikudi.'
-  });
-
-  const [waitlistPhone, setWaitlistPhone] = useState('');
-  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  const [result, setResult] = useState<DeliveryCalculation>(deliveryInfo);
+  const [isLocating, setIsLocating] = useState(false);
 
   if (!isOpen) return null;
 
   const handleCheck = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!inputPincode || inputPincode.length < 6) return;
     const res = verifyPincode(inputPincode);
-    setResult({
-      checked: true,
-      eligible: res.eligible,
-      message: res.message
-    });
+    setResult(res);
   };
 
   const handleQuickSelect = (pin: string) => {
     setInputPincode(pin);
     const res = verifyPincode(pin);
-    setResult({
-      checked: true,
-      eligible: res.eligible,
-      message: res.message
-    });
+    setResult(res);
   };
 
-  const handleWaitlist = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!waitlistPhone.trim()) return;
-    addToWaitlist(waitlistPhone, inputPincode);
-    setWaitlistSubmitted(true);
+  const handleGPS = async () => {
+    setIsLocating(true);
+    const geo = await detectCurrentLocation();
+    setIsLocating(false);
+    if (geo.pincode) {
+      setInputPincode(geo.pincode);
+      if (geo.city) setCustomerCity(geo.city);
+      if (geo.state) setCustomerState(geo.state);
+      const res = verifyPincode(geo.pincode);
+      setResult(res);
+    }
   };
 
   return (
@@ -76,17 +69,31 @@ export const PincodeCheckerModal: React.FC<PincodeCheckerModalProps> = ({
           </div>
 
           <h3 className="font-serif font-bold text-2xl sm:text-3xl text-deep-forest">
-            Karaikudi Free COD Delivery
+            Delivery Pincode & Routing
           </h3>
 
           <p className="text-xs sm:text-sm text-charcoal/70 max-w-sm mx-auto">
-            Free doorstep delivery is available exclusively within Karaikudi daily between 
-            <strong className="text-deep-forest"> 8:00 AM – 4:00 PM</strong>.
+            Check your delivery options: <strong>100% Free COD in Karaikudi</strong> and <strong>Express Courier across Tamil Nadu & India</strong>.
           </p>
         </div>
 
-        {/* Input Form */}
+        {/* Input Form with GPS Detect */}
         <form onSubmit={handleCheck} className="mt-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-deep-forest block">
+              Enter 6-digit Pincode:
+            </label>
+            <button
+              type="button"
+              onClick={handleGPS}
+              disabled={isLocating}
+              className="text-[11px] text-sage-green hover:text-deep-forest flex items-center gap-1 font-semibold underline"
+            >
+              <Compass className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
+              {isLocating ? 'Detecting GPS...' : 'Use Current Location'}
+            </button>
+          </div>
+
           <div className="flex gap-2">
             <input
               type="text"
@@ -94,7 +101,7 @@ export const PincodeCheckerModal: React.FC<PincodeCheckerModalProps> = ({
               maxLength={6}
               value={inputPincode}
               onChange={(e) => setInputPincode(e.target.value.replace(/\D/g, ''))}
-              placeholder="Enter 6-digit Pincode"
+              placeholder="e.g. 630001 or 600001"
               className="flex-1 px-4 py-2.5 rounded-xl bg-botanical-ivory border border-warm-sand text-sm font-mono focus:outline-none focus:ring-1 focus:ring-deep-forest"
             />
             <button
@@ -129,67 +136,60 @@ export const PincodeCheckerModal: React.FC<PincodeCheckerModalProps> = ({
         </div>
 
         {/* Result Feedback Banner */}
-        {result.checked && (
-          <div className="mt-5">
-            {result.eligible ? (
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2 text-xs">
-                <div className="flex items-center gap-2 font-bold text-sm">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                  <span>Eligible for Free Karaikudi COD!</span>
-                </div>
-                <p className="text-emerald-800 leading-relaxed">
-                  Orders to <strong>{inputPincode}</strong> qualify for zero delivery charges. 
-                  Delivered daily between <strong>8:00 AM – 4:00 PM</strong> directly to your home.
-                </p>
-                <button
-                  onClick={onClose}
-                  className="w-full mt-2 py-2.5 rounded-xl bg-deep-forest text-botanical-ivory font-bold uppercase tracking-wider hover:bg-deep-forest-dark text-[11px]"
-                >
-                  Continue Shopping
-                </button>
+        <div className="mt-5">
+          {result.isKaraikudi ? (
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2 text-xs">
+              <div className="flex items-center gap-2 font-bold text-sm">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                <span>Zone A: 100% Free Doorstep Delivery in Karaikudi!</span>
               </div>
-            ) : (
-              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 space-y-3 text-xs">
-                <div className="flex items-start gap-2 font-bold text-sm">
-                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <span>Exclusive to Karaikudi</span>
-                </div>
-                <p className="text-amber-800 leading-relaxed">
-                  We currently offer Free Cash on Delivery exclusively within Karaikudi. 
-                  Pan-India shipping and Chennai live experience stalls are launching soon!
-                </p>
-
-                {waitlistSubmitted ? (
-                  <div className="p-2.5 bg-emerald-100 text-emerald-800 font-bold rounded-xl text-center">
-                    ✓ You will be notified on WhatsApp when we launch in {inputPincode}!
-                  </div>
-                ) : (
-                  <form onSubmit={handleWaitlist} className="pt-1 space-y-2">
-                    <label className="text-[11px] font-semibold text-charcoal/80 block">
-                      Enter your WhatsApp number to get notified when we launch in your area:
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="tel"
-                        required
-                        value={waitlistPhone}
-                        onChange={(e) => setWaitlistPhone(e.target.value)}
-                        placeholder="WhatsApp Number"
-                        className="flex-1 px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-xs"
-                      />
-                      <button
-                        type="submit"
-                        className="px-3.5 py-1.5 rounded-lg bg-deep-forest text-botanical-ivory font-bold text-xs"
-                      >
-                        Notify Me
-                      </button>
-                    </div>
-                  </form>
-                )}
+              <p className="text-emerald-800 leading-relaxed">
+                Pincode <strong>{inputPincode}</strong> qualifies for <strong>₹0 Delivery Charge</strong>. 
+                Delivered daily between <strong>8:00 AM – 4:00 PM</strong> directly to your home via our local fleet.
+              </p>
+              <div className="pt-1 flex items-center justify-between text-[11px] text-emerald-900 font-semibold">
+                <span>Free COD & Direct UPI Accepted</span>
+                <span>Helpline: 9344087944</span>
               </div>
-            )}
-          </div>
-        )}
+              <button
+                onClick={onClose}
+                className="w-full mt-2 py-2.5 rounded-xl bg-deep-forest text-botanical-ivory font-bold uppercase tracking-wider hover:bg-deep-forest-dark text-[11px]"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-950 space-y-2 text-xs">
+              <div className="flex items-center gap-2 font-bold text-sm text-blue-900">
+                <Truck className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                <span>Zone B: Express Courier Delivery Available!</span>
+              </div>
+              <p className="text-blue-800 leading-relaxed">
+                We deliver to <strong>{inputPincode}</strong> via express air/surface courier (Delhivery/BlueDart).
+              </p>
+              <div className="p-2.5 rounded-xl bg-white/80 border border-blue-200 text-[11px] space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-charcoal/70">Estimated Delivery:</span>
+                  <span className="font-semibold text-deep-forest">2 – 4 Business Days</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-charcoal/70">Courier Fee:</span>
+                  <span className="font-semibold text-deep-forest">Weight-based (₹49 base, Free on ₹1499+)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-charcoal/70">Payment Modes:</span>
+                  <span className="font-semibold text-deep-forest">GPay, PhonePe, Paytm, COD, Cards</span>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-full mt-2 py-2.5 rounded-xl bg-deep-forest text-botanical-ivory font-bold uppercase tracking-wider hover:bg-deep-forest-dark text-[11px]"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          )}
+        </div>
 
       </div>
     </div>

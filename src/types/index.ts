@@ -25,6 +25,7 @@ export interface Product {
   price: number;
   originalPrice: number;
   volume: string;
+  weightGrams: number; // e.g. 120g, 380g for dynamic courier calculation
   rating: number;
   reviewCount: number;
   badge?: 'Bestseller' | 'New Launch' | 'Pure Botanical' | 'Customer Favorite';
@@ -32,7 +33,7 @@ export interface Product {
   secondaryImage?: string;
   shortDescription: string;
   fullDescription: string;
-  targetType: string; // e.g. "All skin types, especially dull & uneven texture"
+  targetType: string;
   ingredients: ProductIngredient[];
   benefits: string[];
   howToUse: {
@@ -49,7 +50,27 @@ export interface CartItem {
   quantity: number;
 }
 
+export type DeliveryZone = 'Zone A (Karaikudi Local)' | 'Zone B (Rest of India Courier)';
+
+export type PaymentMethod = 
+  | 'Cash on Delivery (COD)' 
+  | 'Google Pay' 
+  | 'PhonePe' 
+  | 'Paytm' 
+  | 'Supermoney' 
+  | 'BHIM / Any UPI App'
+  | 'Cards & Net Banking';
+
 export type OrderStatus = 'Pending' | 'Out for Delivery' | 'Delivered' | 'Returned';
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  price: number;
+  quantity: number;
+  volume: string;
+  weightGrams: number;
+}
 
 export interface Order {
   id: string;
@@ -59,27 +80,37 @@ export interface Order {
   alternatePhone?: string;
   address: string;
   landmark?: string;
+  city: string;
+  state: string;
   pincode: string;
-  deliverySlot: 'Daily: 8:00 AM – 12:00 PM' | 'Daily: 12:00 PM – 4:00 PM';
+  zone: DeliveryZone;
+  deliverySlot?: string;
+  courierCarrier?: string;
   notes?: string;
-  items: {
-    productId: string;
-    productName: string;
-    price: number;
-    quantity: number;
-    volume: string;
-  }[];
+  items: OrderItem[];
+  totalWeightGrams: number;
   subtotal: number;
-  shipping: number; // 0 for Karaikudi Free COD
+  shippingFee: number;
   total: number;
   status: OrderStatus;
-  paymentMethod: 'Karaikudi Exclusive Free COD';
+  paymentMethod: PaymentMethod;
+  paymentStatus: 'Pending (COD)' | 'Paid (Online)';
+  assignedRider?: string;
 }
 
-export interface WaitlistEntry {
+export interface CustomerAddress {
   id: string;
-  phone: string;
+  street: string;
+  landmark?: string;
+  city: string;
+  state: string;
   pincode: string;
-  city?: string;
-  createdAt: string;
+  isDefault?: boolean;
+}
+
+export interface CustomerProfile {
+  name: string;
+  phone: string;
+  isLoggedIn: boolean;
+  addresses: CustomerAddress[];
 }

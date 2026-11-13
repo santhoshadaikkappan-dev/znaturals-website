@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   CheckCircle, 
@@ -9,22 +9,39 @@ import {
   AlertCircle, 
   Phone, 
   ShoppingBag,
-  ExternalLink 
+  Navigation,
+  CreditCard,
+  QrCode,
+  ArrowRight,
+  PackageCheck,
+  Scale,
+  Sparkles,
+  UserCheck
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { BRAND_CONFIG, isKaraikudiPincode } from '../config/storeConfig';
-import { Order } from '../types';
+import { isKaraikudiPincode } from '../config/storeConfig';
+import { requestBrowserGeolocation } from '../utils/geolocation';
+import { Order, PaymentMethod } from '../types';
 
 export const CheckoutModal: React.FC = () => {
   const {
     cart,
     cartTotal,
+    cartTotalWeight,
+    cartTotalWeightFormatted,
     isCheckoutOpen,
     setIsCheckoutOpen,
     customerPincode,
     setCustomerPincode,
-    createOrder,
-    addToWaitlist
+    customerCity,
+    setCustomerCity,
+    customerState,
+    setCustomerState,
+    deliveryInfo,
+    customerProfile,
+    setIsAuthModalOpen,
+    placeCustomerOrder,
+    showToast
   } = useStore();
 
   const [name, setName] = useState('');
@@ -32,54 +49,112 @@ export const CheckoutModal: React.FC = () => {
   const [alternatePhone, setAlternatePhone] = useState('');
   const [address, setAddress] = useState('');
   const [landmark, setLandmark] = useState('');
+  const [city, setCity] = useState(customerCity || 'Karaikudi');
+  const [state, setState] = useState(customerState || 'Tamil Nadu');
   const [pincode, setPincode] = useState(customerPincode || '630001');
-  const [deliverySlot, setDeliverySlot] = useState<'Daily: 8:00 AM – 12:00 PM' | 'Daily: 12:00 PM – 4:00 PM'>('Daily: 8:00 AM – 12:00 PM');
+  const [deliverySlot, setDeliverySlot] = useState<string>('Daily: 8:00 AM – 12:00 PM');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash on Delivery (COD)');
   const [notes, setNotes] = useState('');
 
-  // Submitted Order State for Receipt View
+  // GPS State
+  const [isLocating, setIsLocating] = useState(false);
+
+  // Completed Order State for Receipt View
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
 
-  // Non-Karaikudi Waitlist Form State
-  const [waitlistPhone, setWaitlistPhone] = useState('');
-  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
+  // Sync profile details when logged in
+  useEffect(() => {
+    if (customerProfile.isLoggedIn) {
+      if (!name && customerProfile.name) setName(customerProfile.name);
+      if (!phone && customerProfile.phone) setPhone(customerProfile.phone);
+
+      // Auto-populate default address if available
+      if (customerProfile.addresses.length > 0 && !address) {
+        const defaultAddr = customerProfile.addresses.find((a) => a.isDefault) || customerProfile.addresses[0];
+        setAddress(defaultAddr.street);
+        if (defaultAddr.landmark) setLandmark(defaultAddr.landmark);
+        setCity(defaultAddr.city);
+        setState(defaultAddr.state);
+        setPincode(defaultAddr.pincode);
+        setCustomerPincode(defaultAddr.pincode);
+      }
+    }
+  }, [customerProfile, customerProfile.isLoggedIn]);
 
   if (!isCheckoutOpen) return null;
 
-  const isEligible = isKaraikudiPincode(pincode);
+  const isKaraikudi = isKaraikudiPincode(pincode);
+
+  // Trigger GPS Geolocation
+  const handleDetectLocation = async () => {
+    setIsLocating(true);
+    try {
+      const loc = await requestBrowserGeolocation();
+      if (loc.pincode) {
+        setPincode(loc.pincode);
+        setCustomerPincode(loc.pincode);
+      }
+      if (loc.city) {
+        setCity(loc.city);
+        setCustomerCity(loc.city);
+      }
+      if (loc.state) {
+        setState(loc.state);
+        setCustomerState(loc.state);
+      }
+      showToast(`📍 Location detected: ${loc.city}, ${loc.state} (${loc.pincode})`);
+    } catch (err: any) {
+      showToast(err.message || "Could not detect GPS location.");
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
+  const handlePincodeChange = (val: string) => {
+    const cleaned = val.replace(/\D/g, '').slice(0, 6);
+    setPincode(cleaned);
+    setCustomerPincode(cleaned);
+  };
+
+  const handleSelectSavedAddress = (addrId: string) => {
+    const found = customerProfile.addresses.find((a) => a.id === addrId);
+    if (found) {
+      setAddress(found.street);
+      if (found.landmark) setLandmark(found.landmark);
+      setCity(found.city);
+      setState(found.state);
+      setPincode(found.pincode);
+      setCustomerPincode(found.pincode);
+      showToast(`Selected saved address for ${found.city}`);
+    }
+  };
 
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isEligible) return;
+    if (!pincode || pincode.length !== 6) {
+      showToast("Please enter a valid 6-digit delivery pincode");
+      return;
+    }
+    if (!phone || phone.length < 10) {
+      showToast("Please enter a valid 10-digit mobile number");
+      return;
+    }
 
-    const newOrder = createOrder({
+    const order = placeCustomerOrder({
       customerName: name,
       phone,
       alternatePhone,
       address,
       landmark,
+      city,
+      state,
       pincode,
-      deliverySlot,
+      deliverySlot: isKaraikudi ? deliverySlot : 'Express Courier (2–4 Days)',
       notes,
-      items: cart.map((item) => ({
-        productId: item.product.id,
-        productName: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-        volume: item.product.volume
-      })),
-      subtotal: cartTotal,
-      total: cartTotal
+      paymentMethod
     });
 
-    setCustomerPincode(pincode);
-    setCompletedOrder(newOrder);
-  };
-
-  const handleWaitlistSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!waitlistPhone) return;
-    addToWaitlist(waitlistPhone, pincode, 'Outside Karaikudi Zone');
-    setWaitlistSuccess(true);
+    setCompletedOrder(order);
   };
 
   const handleClose = () => {
@@ -87,20 +162,29 @@ export const CheckoutModal: React.FC = () => {
     setIsCheckoutOpen(false);
   };
 
+  const shippingFee = deliveryInfo.shippingFee;
+  const grandTotal = cartTotal + shippingFee;
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 md:p-6 animate-fadeIn">
-      {/* Backdrop */}
       <div className="fixed inset-0" onClick={handleClose} />
 
       <div className="relative bg-soft-white rounded-3xl max-w-2xl w-full shadow-2xl border border-warm-sand overflow-hidden z-10 max-h-[92vh] flex flex-col">
         
         {/* Modal Header */}
         <div className="p-4 sm:p-5 border-b border-warm-sand/60 bg-botanical-ivory flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Truck className="w-5 h-5 text-deep-forest" />
-            <h2 className="font-serif font-bold text-xl text-deep-forest">
-              {completedOrder ? 'Order Confirmation' : 'Karaikudi Free COD Checkout'}
-            </h2>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-deep-forest text-champagne-gold flex items-center justify-center">
+              <Truck className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="font-editorial font-bold text-xl text-deep-forest leading-tight">
+                {completedOrder ? 'Order Confirmation' : 'Secure Checkout & Delivery'}
+              </h2>
+              <span className="text-[11px] text-charcoal/70">
+                {isKaraikudi ? 'Zone A: Karaikudi Local (Free Delivery)' : 'Zone B: Rest of India (Courier)'}
+              </span>
+            </div>
           </div>
           <button
             onClick={handleClose}
@@ -121,45 +205,53 @@ export const CheckoutModal: React.FC = () => {
 
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-sage-green block mb-1">
-                  Karaikudi Doorstep Delivery Booked!
+                  {completedOrder.zone}
                 </span>
-                <h3 className="font-serif font-bold text-3xl text-deep-forest">
+                <h3 className="font-editorial font-bold text-3xl text-deep-forest">
                   Thank you, {completedOrder.customerName}!
                 </h3>
                 <p className="font-sans text-sm text-charcoal/80 mt-2 max-w-md mx-auto">
-                  Your order has been assigned to our local Karaikudi delivery team. 
-                  Payment of <strong className="text-deep-forest">₹{completedOrder.total}</strong> will be collected via 
-                  Cash or UPI when delivered.
+                  Your botanical order has been booked successfully! <br />
+                  Payment Mode: <strong className="text-deep-forest">{completedOrder.paymentMethod}</strong> (Total: ₹{completedOrder.total})
                 </p>
               </div>
 
               {/* Receipt Summary Card */}
-              <div className="p-5 rounded-2xl bg-botanical-ivory border border-warm-sand text-left space-y-3.5 text-xs">
+              <div className="p-5 rounded-2xl bg-botanical-ivory border border-warm-sand text-left space-y-3 text-xs">
                 <div className="flex justify-between items-center border-b border-warm-sand pb-2">
-                  <span className="text-charcoal/60">Order Reference ID:</span>
+                  <span className="text-charcoal/60">Order Reference:</span>
                   <span className="font-mono font-bold text-sm text-deep-forest">{completedOrder.id}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-charcoal/60">Scheduled Delivery Slot:</span>
-                  <span className="font-bold text-deep-forest">{completedOrder.deliverySlot}</span>
+                  <span className="text-charcoal/60">Delivery Route & Schedule:</span>
+                  <span className="font-bold text-deep-forest">
+                    {completedOrder.deliverySlot || completedOrder.zone}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-charcoal/60">Delivery Address:</span>
                   <span className="font-medium text-right text-deep-forest max-w-xs truncate">
-                    {completedOrder.address}, {completedOrder.pincode}
+                    {completedOrder.address}, {completedOrder.city}, {completedOrder.pincode}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-charcoal/60">Contact Phone:</span>
-                  <span className="font-bold text-deep-forest">+91 {completedOrder.phone}</span>
+                  <span className="text-charcoal/60">Customer Phone:</span>
+                  <span className="font-bold text-deep-forest font-mono">+91 {completedOrder.phone}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-charcoal/60">Total Parcel Weight:</span>
+                  <span className="font-bold text-deep-forest">
+                    {completedOrder.totalWeightGrams >= 1000 ? `${(completedOrder.totalWeightGrams / 1000).toFixed(2)} kg` : `${completedOrder.totalWeightGrams} g`}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-charcoal/60">Karaikudi Dispatch Helpline:</span>
-                  <a href="tel:9344087944" className="font-bold text-deep-forest hover:underline font-mono">
+                  <a href="tel:9344087944" className="font-bold text-deep-forest font-mono underline">
                     +91 9344087944
                   </a>
                 </div>
@@ -174,22 +266,17 @@ export const CheckoutModal: React.FC = () => {
                       <span className="font-medium">₹{it.price * it.quantity}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between pt-2 border-t border-warm-sand/50 font-bold text-sm text-deep-forest">
-                    <span>Total Payable (COD):</span>
-                    <span>₹{completedOrder.total}</span>
+                  
+                  <div className="flex justify-between text-charcoal/70 pt-1">
+                    <span>Shipping / Delivery:</span>
+                    <span className="font-semibold text-emerald-800">
+                      {completedOrder.shippingFee === 0 ? 'FREE' : `₹${completedOrder.shippingFee}`}
+                    </span>
                   </div>
-                </div>
-              </div>
 
-              {/* Weekend Stall Plug */}
-              <div className="p-3.5 rounded-xl bg-sage-green/10 border border-sage-green/30 text-xs text-left flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-sage-green text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                  STALL
-                </div>
-                <div>
-                  <div className="font-bold text-deep-forest">Also visiting our Live Stall?</div>
-                  <div className="text-charcoal/70">
-                    Visit Kallukatti Gandhi Square this Friday–Sunday (5:30–9:30 PM) for free skin consultations!
+                  <div className="flex justify-between pt-2 border-t border-warm-sand/50 font-bold text-sm text-deep-forest">
+                    <span>Final Amount:</span>
+                    <span>₹{completedOrder.total} ({completedOrder.paymentStatus})</span>
                   </div>
                 </div>
               </div>
@@ -206,78 +293,142 @@ export const CheckoutModal: React.FC = () => {
             /* Checkout Form */
             <form onSubmit={handleSubmitOrder} className="space-y-5">
               
-              {/* Pincode Check Banner */}
-              <div className="p-3.5 rounded-2xl border border-warm-sand bg-botanical-ivory space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-deep-forest flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-sage-green" />
-                    Delivery Pincode (Karaikudi Only)
-                  </label>
-                  <span className="text-[10px] text-sage-green font-semibold uppercase">
-                    Daily 8 AM – 4 PM
-                  </span>
-                </div>
-
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={pincode}
-                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Enter Karaikudi Pincode (e.g. 630001)"
-                    className="flex-1 px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs font-mono focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                  />
-                </div>
-
-                {isEligible ? (
-                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-medium flex items-center gap-2 border border-emerald-200">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span>Eligible for <strong>FREE Karaikudi Cash on Delivery</strong> (Delivered Daily between 8:00 AM – 4:00 PM)</span>
+              {/* Customer Account Prompt / Status */}
+              {!customerProfile.isLoggedIn ? (
+                <div className="p-3.5 rounded-2xl bg-botanical-ivory border border-warm-sand/80 flex items-center justify-between">
+                  <div className="text-xs">
+                    <span className="font-bold text-deep-forest block">Have a Mobile Account?</span>
+                    <span className="text-charcoal/70">Sign in with phone OTP to use saved addresses.</span>
                   </div>
-                ) : (
-                  <div className="p-3 rounded-xl bg-amber-50 text-amber-900 text-xs space-y-2 border border-amber-200">
-                    <div className="flex items-start gap-2 font-medium">
-                      <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <span>
-                        We currently offer Free COD exclusively within Karaikudi. Pan-India shipping and Chennai stalls are launching soon!
+                  <button
+                    type="button"
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs hover:bg-deep-forest-dark"
+                  >
+                    Mobile Login
+                  </button>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-emerald-700" />
+                    <div>
+                      <span className="font-bold text-emerald-900 block">Logged in as {customerProfile.name || 'Valued Customer'}</span>
+                      <span className="text-emerald-700 font-mono">+91 {customerProfile.phone}</span>
+                    </div>
+                  </div>
+                  {customerProfile.addresses.length > 0 && (
+                    <select
+                      onChange={(e) => handleSelectSavedAddress(e.target.value)}
+                      className="text-xs bg-white border border-emerald-300 rounded-lg px-2 py-1 font-medium text-emerald-900"
+                    >
+                      <option value="">Use Saved Address...</option>
+                      {customerProfile.addresses.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.city} ({a.pincode}) - {a.street.slice(0, 20)}...
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
+
+              {/* 1. Location Detection & Pincode Routing Strip */}
+              <div className="p-4 rounded-2xl border border-warm-sand bg-botanical-ivory space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-deep-forest flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-sage-green" />
+                    Delivery Location & Pincode:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDetectLocation}
+                    disabled={isLocating}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-soft-white border border-sage-green text-deep-forest text-xs font-semibold hover:bg-sage-green hover:text-white transition-all shadow-sm"
+                  >
+                    <Navigation className={`w-3.5 h-3.5 text-sage-green ${isLocating ? 'animate-spin' : ''}`} />
+                    <span>{isLocating ? 'Detecting GPS...' : '📍 Auto-Detect GPS'}</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="text-[11px] font-bold text-charcoal/70 block mb-1">
+                      Pincode (6-Digit) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={pincode}
+                      onChange={(e) => handlePincodeChange(e.target.value)}
+                      placeholder="e.g. 630001"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-charcoal/70 block mb-1">
+                      City / Town *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g. Karaikudi"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-charcoal/70 block mb-1">
+                      State *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="e.g. Tamil Nadu"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                    />
+                  </div>
+                </div>
+
+                {/* Delivery Zone Badge & Pricing Breakdown */}
+                {isKaraikudi ? (
+                  <div className="p-3 rounded-xl bg-emerald-50 text-emerald-900 text-xs border border-emerald-200 flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold block">Zone A: Karaikudi Local (100% Free Doorstep Delivery)</span>
+                      <span className="text-emerald-800 text-[11px]">
+                        Delivered daily between 8:00 AM – 4:00 PM by Z Naturals local fleet. Cash on Delivery is 100% free!
                       </span>
                     </div>
-
-                    {waitlistSuccess ? (
-                      <div className="p-2 bg-emerald-100 text-emerald-800 rounded font-bold text-center">
-                        ✓ WhatsApp notification registered!
-                      </div>
-                    ) : (
-                      <div className="pt-2 border-t border-amber-200/80">
-                        <label className="text-[11px] block font-semibold mb-1">
-                          Enter your WhatsApp number to get notified when we launch in {pincode || 'your area'}:
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="tel"
-                            value={waitlistPhone}
-                            onChange={(e) => setWaitlistPhone(e.target.value)}
-                            placeholder="WhatsApp Number"
-                            className="flex-1 px-2.5 py-1.5 rounded-lg bg-white border border-amber-300 text-xs"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleWaitlistSubmit}
-                            className="px-3 py-1.5 rounded-lg bg-deep-forest text-botanical-ivory text-xs font-bold"
-                          >
-                            Join Waitlist
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-blue-50 text-blue-900 text-xs border border-blue-200 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold flex items-center gap-1.5">
+                        <Truck className="w-4 h-4 text-blue-600" />
+                        Zone B: Courier Shipping to {city || 'Your City'}
+                      </span>
+                      <span className="font-bold font-mono text-sm">
+                        {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-blue-800">
+                      <Scale className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                      <span>{deliveryInfo.slabDescription}</span>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Customer Contact & Address */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* 2. Customer Contact & Address Form */}
+              <div className="space-y-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
                     <label className="block text-xs font-bold text-deep-forest mb-1">
                       Full Name *
@@ -294,23 +445,24 @@ export const CheckoutModal: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-bold text-deep-forest mb-1">
-                      WhatsApp / Phone Number *
+                      Mobile Number (WhatsApp) *
                     </label>
                     <input
                       type="tel"
                       required
+                      maxLength={10}
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. 98421 00000"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      placeholder="10-digit mobile"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs font-mono focus:outline-none focus:ring-1 focus:ring-deep-forest"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
                     <label className="block text-xs font-bold text-deep-forest mb-1">
-                      Alternate Contact (Optional)
+                      Alternate Phone (Optional)
                     </label>
                     <input
                       type="tel"
@@ -323,13 +475,13 @@ export const CheckoutModal: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-bold text-deep-forest mb-1">
-                      Nearest Karaikudi Landmark
+                      Nearest Landmark (Optional)
                     </label>
                     <input
                       type="text"
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
-                      placeholder="e.g. Near New Bus Stand, Sekkalai"
+                      placeholder="e.g. Near New Bus Stand / Chettinad Silks"
                       className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
                     />
                   </div>
@@ -337,103 +489,187 @@ export const CheckoutModal: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-deep-forest mb-1">
-                    Door No, Street Name & Area (Karaikudi) *
+                    Delivery Street Address / Door No *
                   </label>
                   <textarea
                     required
                     rows={2}
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="e.g. 14, Subramaniapuram 2nd Street, Near Alagappa School"
+                    placeholder="e.g. 14, Subramaniapuram 2nd Street"
                     className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
                   />
                 </div>
 
-                {/* Delivery Slot Selector */}
-                <div>
-                  <label className="block text-xs font-bold text-deep-forest mb-1.5 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-sage-green" />
-                    Preferred Daily Delivery Slot *
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <label className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
-                      deliverySlot === 'Daily: 8:00 AM – 12:00 PM'
-                        ? 'border-deep-forest bg-deep-forest/5 font-semibold text-deep-forest'
-                        : 'border-warm-sand bg-white text-charcoal/70'
-                    }`}>
-                      <input
-                        type="radio"
-                        name="deliverySlot"
-                        value="Daily: 8:00 AM – 12:00 PM"
-                        checked={deliverySlot === 'Daily: 8:00 AM – 12:00 PM'}
-                        onChange={() => setDeliverySlot('Daily: 8:00 AM – 12:00 PM')}
-                        className="text-deep-forest focus:ring-deep-forest"
-                      />
-                      <span className="text-xs">Morning: 8:00 AM – 12:00 PM</span>
+                {/* Delivery Slot Selection (Karaikudi Only) */}
+                {isKaraikudi && (
+                  <div>
+                    <label className="block text-xs font-bold text-deep-forest mb-1.5 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-sage-green" />
+                      Karaikudi Local Delivery Slot *
                     </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
+                        deliverySlot === 'Daily: 8:00 AM – 12:00 PM'
+                          ? 'border-deep-forest bg-deep-forest/5 font-semibold text-deep-forest'
+                          : 'border-warm-sand bg-white text-charcoal/70'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="deliverySlot"
+                          value="Daily: 8:00 AM – 12:00 PM"
+                          checked={deliverySlot === 'Daily: 8:00 AM – 12:00 PM'}
+                          onChange={() => setDeliverySlot('Daily: 8:00 AM – 12:00 PM')}
+                          className="text-deep-forest"
+                        />
+                        <span className="text-xs">Morning: 8:00 AM – 12:00 PM</span>
+                      </label>
 
-                    <label className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
-                      deliverySlot === 'Daily: 12:00 PM – 4:00 PM'
-                        ? 'border-deep-forest bg-deep-forest/5 font-semibold text-deep-forest'
-                        : 'border-warm-sand bg-white text-charcoal/70'
-                    }`}>
-                      <input
-                        type="radio"
-                        name="deliverySlot"
-                        value="Daily: 12:00 PM – 4:00 PM"
-                        checked={deliverySlot === 'Daily: 12:00 PM – 4:00 PM'}
-                        onChange={() => setDeliverySlot('Daily: 12:00 PM – 4:00 PM')}
-                        className="text-deep-forest focus:ring-deep-forest"
-                      />
-                      <span className="text-xs">Afternoon: 12:00 PM – 4:00 PM</span>
-                    </label>
+                      <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
+                        deliverySlot === 'Daily: 12:00 PM – 4:00 PM'
+                          ? 'border-deep-forest bg-deep-forest/5 font-semibold text-deep-forest'
+                          : 'border-warm-sand bg-white text-charcoal/70'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="deliverySlot"
+                          value="Daily: 12:00 PM – 4:00 PM"
+                          checked={deliverySlot === 'Daily: 12:00 PM – 4:00 PM'}
+                          onChange={() => setDeliverySlot('Daily: 12:00 PM – 4:00 PM')}
+                          className="text-deep-forest"
+                        />
+                        <span className="text-xs">Afternoon: 12:00 PM – 4:00 PM</span>
+                      </label>
+                    </div>
                   </div>
-                </div>
+                )}
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-deep-forest mb-1">
-                    Special Delivery Instructions (Optional)
+              {/* 3. Payment Method Routing */}
+              <div className="space-y-2.5 pt-1 border-t border-warm-sand/60">
+                <label className="block text-xs font-bold text-deep-forest uppercase tracking-wider flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5 text-sage-green" /> Choose Payment Option:
+                </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Option 1: Cash on Delivery */}
+                  <label className={`p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all ${
+                    paymentMethod === 'Cash on Delivery (COD)'
+                      ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest'
+                      : 'border-warm-sand bg-white text-charcoal/80'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Cash on Delivery (COD)"
+                      checked={paymentMethod === 'Cash on Delivery (COD)'}
+                      onChange={() => setPaymentMethod('Cash on Delivery (COD)')}
+                      className="mt-0.5 text-deep-forest"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold block">Cash on Delivery (COD)</span>
+                      <span className="text-[11px] text-charcoal/60">
+                        {isKaraikudi ? 'Free doorstep cash/UPI collection' : 'Pay courier agent upon arrival'}
+                      </span>
+                    </div>
                   </label>
-                  <input
-                    type="text"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="e.g. Call before coming, leave with neighbor if locked"
-                    className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                  />
+
+                  {/* Option 2: Google Pay */}
+                  <label className={`p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all ${
+                    paymentMethod === 'Google Pay'
+                      ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest'
+                      : 'border-warm-sand bg-white text-charcoal/80'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Google Pay"
+                      checked={paymentMethod === 'Google Pay'}
+                      onChange={() => setPaymentMethod('Google Pay')}
+                      className="mt-0.5 text-deep-forest"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold block">Google Pay (GPay)</span>
+                      <span className="text-[11px] text-charcoal/60">Instant UPI transfer</span>
+                    </div>
+                  </label>
+
+                  {/* Option 3: PhonePe */}
+                  <label className={`p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all ${
+                    paymentMethod === 'PhonePe'
+                      ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest'
+                      : 'border-warm-sand bg-white text-charcoal/80'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="PhonePe"
+                      checked={paymentMethod === 'PhonePe'}
+                      onChange={() => setPaymentMethod('PhonePe')}
+                      className="mt-0.5 text-deep-forest"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold block">PhonePe</span>
+                      <span className="text-[11px] text-charcoal/60">UPI / Wallet payment</span>
+                    </div>
+                  </label>
+
+                  {/* Option 4: Paytm / Supermoney / BHIM */}
+                  <label className={`p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all ${
+                    paymentMethod === 'Supermoney'
+                      ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest'
+                      : 'border-warm-sand bg-white text-charcoal/80'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Supermoney"
+                      checked={paymentMethod === 'Supermoney'}
+                      onChange={() => setPaymentMethod('Supermoney')}
+                      className="mt-0.5 text-deep-forest"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold block">Supermoney / Paytm</span>
+                      <span className="text-[11px] text-charcoal/60">Supermoney UPI rewards</span>
+                    </div>
+                  </label>
                 </div>
               </div>
 
-              {/* Order Total & COD Assurance */}
-              <div className="p-4 rounded-2xl bg-botanical-ivory border border-warm-sand space-y-2">
-                <div className="flex justify-between items-center text-xs text-charcoal/80">
-                  <span>Cart Items ({cart.length})</span>
-                  <span>₹{cartTotal}</span>
+              {/* 4. Order Summary & Price Breakdown */}
+              <div className="p-4 rounded-2xl bg-botanical-ivory border border-warm-sand space-y-2 text-xs">
+                <div className="flex justify-between items-center text-charcoal/80">
+                  <span>Cart Items ({cart.length}) • Total Weight: {cartTotalWeightFormatted}</span>
+                  <span className="font-semibold text-deep-forest">₹{cartTotal}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs text-emerald-800 font-semibold">
-                  <span>Karaikudi Doorstep COD Delivery</span>
-                  <span>FREE</span>
+
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5">
+                    <span>Delivery Charge ({isKaraikudi ? 'Karaikudi Local' : 'Courier Slab'}):</span>
+                  </span>
+                  <span className="font-bold text-emerald-800">
+                    {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}
+                  </span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-warm-sand font-bold text-base text-deep-forest">
-                  <span>Total Amount Due on Delivery</span>
-                  <span className="text-xl">₹{cartTotal}</span>
+
+                <div className="flex justify-between items-center pt-2 border-t border-warm-sand font-bold text-sm text-deep-forest">
+                  <span>Final Amount ({paymentMethod}):</span>
+                  <span className="text-xl">₹{grandTotal}</span>
                 </div>
-                <p className="text-[10px] text-charcoal/60 pt-1">
-                  💡 Zero online payment risk: inspect your botanical package at doorstep before handing over cash or scanning GPay/UPI.
-                </p>
               </div>
 
-              {/* Submit Button */}
+              {/* Submit Order Button */}
               <button
                 type="submit"
-                disabled={!isEligible || cart.length === 0}
-                className={`w-full py-4 px-6 rounded-xl font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-botanical ${
-                  isEligible && cart.length > 0
-                    ? 'bg-deep-forest text-botanical-ivory hover:bg-deep-forest-dark cursor-pointer'
-                    : 'bg-warm-sand/50 text-charcoal/40 cursor-not-allowed'
-                }`}
+                disabled={cart.length === 0}
+                className="w-full py-4 px-6 rounded-xl bg-deep-forest hover:bg-deep-forest-dark text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-botanical active:scale-[0.98]"
               >
-                <span>Confirm & Place Free Karaikudi COD Order</span>
+                <span>
+                  {paymentMethod === 'Cash on Delivery (COD)'
+                    ? `Place Order • ₹${grandTotal} (Pay upon Delivery)`
+                    : `Pay ₹${grandTotal} via ${paymentMethod}`}
+                </span>
+                <ArrowRight className="w-4 h-4 text-champagne-gold" />
               </button>
 
             </form>

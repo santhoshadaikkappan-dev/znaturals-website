@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { BrandLogo } from './BrandLogo';
 import { BRAND_CONFIG } from '../config/storeConfig';
-import { MapPin, Phone, Mail, Clock, Send, ShieldCheck, Heart, Sparkles } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, ShieldCheck, Heart, Sparkles, User } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 export const Footer: React.FC = () => {
-  const { setCurrentView, setIsAiAdvisorOpen } = useStore();
+  const { setIsAuthModalOpen, setIsAiAdvisorOpen } = useStore();
   const [newsletterPhone, setNewsletterPhone] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -28,7 +28,6 @@ export const Footer: React.FC = () => {
               size="md" 
               showTagline 
               onClick={() => {
-                setCurrentView('store');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
             />
@@ -152,10 +151,11 @@ export const Footer: React.FC = () => {
 
             <div className="pt-2">
               <button
-                onClick={() => setCurrentView('admin')}
-                className="text-[11px] text-champagne-gold/80 hover:text-champagne-gold underline font-mono"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="text-xs text-champagne-gold/90 hover:text-champagne-gold underline font-sans flex items-center gap-1.5 transition-colors"
               >
-                Staff Order & Delivery Panel (Karaikudi Hub) →
+                <User className="w-3.5 h-3.5" />
+                Customer Account & Saved Addresses →
               </button>
             </div>
           </div>

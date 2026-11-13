@@ -8,30 +8,35 @@ import {
   Truck, 
   MapPin, 
   ArrowRight, 
-  ShieldCheck, 
-  AlertCircle 
+  Scale, 
+  Navigation,
+  CheckCircle2
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { requestBrowserGeolocation } from '../utils/geolocation';
 
 export const CartDrawer: React.FC = () => {
   const {
     cart,
     cartCount,
     cartTotal,
+    cartTotalWeightFormatted,
     removeFromCart,
     updateQuantity,
     isCartOpen,
     setIsCartOpen,
     customerPincode,
+    setCustomerPincode,
+    setCustomerCity,
+    setCustomerState,
+    deliveryInfo,
     verifyPincode,
-    isPincodeEligible,
     setIsCheckoutOpen,
-    addToWaitlist
+    showToast
   } = useStore();
 
   const [inputPincode, setInputPincode] = useState(customerPincode);
-  const [waitlistPhone, setWaitlistPhone] = useState('');
-  const [waitlistSent, setWaitlistSent] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   if (!isCartOpen) return null;
 
@@ -40,17 +45,31 @@ export const CartDrawer: React.FC = () => {
     verifyPincode(inputPincode);
   };
 
-  const handleWaitlistSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!waitlistPhone.trim()) return;
-    addToWaitlist(waitlistPhone, inputPincode);
-    setWaitlistSent(true);
+  const handleDetectGps = async () => {
+    setIsLocating(true);
+    try {
+      const loc = await requestBrowserGeolocation();
+      if (loc.pincode) {
+        setInputPincode(loc.pincode);
+        verifyPincode(loc.pincode);
+      }
+      if (loc.city) setCustomerCity(loc.city);
+      if (loc.state) setCustomerState(loc.state);
+      showToast(`📍 Location: ${loc.city} (${loc.pincode})`);
+    } catch (err: any) {
+      showToast(err.message || "Could not detect location.");
+    } finally {
+      setIsLocating(false);
+    }
   };
 
   const handleProceedCheckout = () => {
     setIsCartOpen(false);
     setIsCheckoutOpen(true);
   };
+
+  const shippingFee = deliveryInfo.shippingFee;
+  const grandTotal = cartTotal + shippingFee;
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden animate-fadeIn">
@@ -67,10 +86,10 @@ export const CartDrawer: React.FC = () => {
           <div className="p-4 sm:p-5 border-b border-warm-sand/60 bg-botanical-ivory flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-deep-forest" />
-              <h2 className="font-serif font-bold text-xl text-deep-forest">
+              <h2 className="font-editorial font-bold text-xl text-deep-forest">
                 Your Botanical Bag
               </h2>
-              <span className="text-xs bg-deep-forest/10 text-deep-forest font-bold px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-deep-forest/10 text-deep-forest font-bold px-2 py-0.5 rounded-full font-mono">
                 {cartCount}
               </span>
             </div>
@@ -83,81 +102,94 @@ export const CartDrawer: React.FC = () => {
             </button>
           </div>
 
-          {/* Delivery Eligibility Strip */}
-          <div className="px-4 py-3 bg-warm-sand/20 border-b border-warm-sand/40">
+          {/* Location & Pincode Checker Strip */}
+          <div className="px-4 py-3 bg-warm-sand/20 border-b border-warm-sand/40 space-y-2">
             <form onSubmit={handlePincodeSubmit} className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-sage-green flex-shrink-0" />
-              <div className="flex-1">
-                <input
-                  type="text"
-                  maxLength={6}
-                  value={inputPincode}
-                  onChange={(e) => setInputPincode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="Karaikudi Pincode"
-                  className="w-full text-xs bg-white px-2.5 py-1.5 rounded border border-warm-sand focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                />
-              </div>
+              <input
+                type="text"
+                maxLength={6}
+                value={inputPincode}
+                onChange={(e) => setInputPincode(e.target.value.replace(/\D/g, ''))}
+                placeholder="Enter Pincode (e.g. 630001)"
+                className="flex-1 text-xs bg-white px-2.5 py-1.5 rounded-lg border border-warm-sand font-mono focus:outline-none focus:ring-1 focus:ring-deep-forest"
+              />
               <button
                 type="submit"
-                className="px-3 py-1.5 bg-deep-forest text-botanical-ivory text-xs font-semibold rounded hover:bg-deep-forest-dark"
+                className="px-3 py-1.5 bg-deep-forest text-botanical-ivory text-xs font-semibold rounded-lg hover:bg-deep-forest-dark"
               >
-                Check
+                Apply
+              </button>
+              <button
+                type="button"
+                onClick={handleDetectGps}
+                disabled={isLocating}
+                className="p-1.5 rounded-lg border border-warm-sand bg-white text-deep-forest hover:bg-warm-sand/30"
+                title="Detect my current location via GPS"
+              >
+                <Navigation className={`w-3.5 h-3.5 text-sage-green ${isLocating ? 'animate-spin' : ''}`} />
               </button>
             </form>
 
-            <div className="mt-2 text-[11px]">
-              {isPincodeEligible ? (
+            {/* Delivery Info Feedback Badge */}
+            <div className="text-[11px]">
+              {deliveryInfo.isKaraikudi ? (
                 <div className="flex items-center gap-1.5 text-emerald-800 font-medium">
-                  <Truck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Eligible for <strong>FREE Karaikudi Cash on Delivery</strong> (8 AM – 4 PM)</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                  <span><strong>Zone A: Karaikudi Local</strong> • FREE Delivery (8 AM – 4 PM)</span>
                 </div>
               ) : (
-                <div className="flex items-start gap-1.5 text-amber-900 font-medium">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <span>Free COD is currently exclusive to Karaikudi ({inputPincode} is outside zone).</span>
+                <div className="flex items-center justify-between text-blue-900 font-medium bg-blue-50/80 px-2 py-1 rounded-md border border-blue-200">
+                  <div className="flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                    <span>Zone B Courier ({deliveryInfo.totalWeightFormatted})</span>
+                  </div>
+                  <span className="font-bold font-mono">
+                    {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}
+                  </span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
             {cart.length === 0 ? (
               <div className="text-center py-16 space-y-4">
                 <div className="w-16 h-16 rounded-full bg-botanical-ivory border border-warm-sand flex items-center justify-center mx-auto text-sage-green">
                   <ShoppingBag className="w-7 h-7" />
                 </div>
-                <h3 className="font-serif font-bold text-xl text-deep-forest">
-                  Your bag is currently empty
+                <h3 className="font-editorial font-bold text-xl text-deep-forest">
+                  Your bag is empty
                 </h3>
                 <p className="text-xs text-charcoal/70 max-w-xs mx-auto">
-                  Discover our Chettinad-inspired cold-pressed botanicals crafted for natural radiance.
+                  Explore our pure botanical formulas cold-pressed for natural radiance.
                 </p>
                 <button
                   onClick={() => setIsCartOpen(false)}
                   className="px-6 py-2.5 rounded-xl bg-deep-forest text-botanical-ivory text-xs font-bold uppercase tracking-wider hover:bg-deep-forest-dark"
                 >
-                  Explore Collection
+                  Explore Bestsellers
                 </button>
               </div>
             ) : (
               cart.map((item) => (
                 <div 
                   key={item.product.id}
-                  className="flex gap-3.5 p-3 rounded-2xl bg-botanical-ivory/50 border border-warm-sand/50"
+                  className="flex gap-3 p-3 rounded-2xl bg-botanical-ivory/50 border border-warm-sand/50"
                 >
                   {/* Thumbnail */}
                   <img
                     src={item.product.image}
                     alt={item.product.name}
-                    className="w-20 h-20 rounded-xl object-cover border border-warm-sand flex-shrink-0"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-warm-sand flex-shrink-0"
                   />
 
                   {/* Info */}
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex items-start justify-between gap-1">
-                        <h4 className="font-serif font-bold text-sm text-deep-forest leading-snug line-clamp-1">
+                        <h4 className="font-bold text-xs sm:text-sm text-deep-forest leading-snug line-clamp-1">
                           {item.product.name}
                         </h4>
                         <button
@@ -169,7 +201,7 @@ export const CartDrawer: React.FC = () => {
                         </button>
                       </div>
                       <div className="text-[11px] text-charcoal/60 mt-0.5">
-                        {item.product.volume} • ₹{item.product.price} each
+                        {item.product.volume} • {item.product.weightGrams}g • ₹{item.product.price} each
                       </div>
                     </div>
 
@@ -182,7 +214,7 @@ export const CartDrawer: React.FC = () => {
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-7 text-center font-bold text-xs text-deep-forest">
+                        <span className="w-6 text-center font-bold text-xs text-deep-forest">
                           {item.quantity}
                         </span>
                         <button
@@ -206,76 +238,53 @@ export const CartDrawer: React.FC = () => {
             )}
           </div>
 
-          {/* Drawer Footer / Checkout Strip */}
+          {/* Drawer Footer */}
           {cart.length > 0 && (
             <div className="p-4 sm:p-5 border-t border-warm-sand/60 bg-botanical-ivory space-y-3">
               
-              {/* Cost Summary */}
+              {/* Cost & Weight Summary */}
               <div className="space-y-1.5 text-xs text-charcoal/80">
                 <div className="flex justify-between">
                   <span>Subtotal ({cartCount} items)</span>
                   <span className="font-semibold text-deep-forest">₹{cartTotal}</span>
                 </div>
+
                 <div className="flex justify-between items-center">
                   <span className="flex items-center gap-1">
-                    Karaikudi Delivery
-                    <span className="text-[10px] text-emerald-700 bg-emerald-100 px-1.5 rounded">FREE</span>
+                    <Scale className="w-3 h-3 text-sage-green" /> Total Weight:
                   </span>
-                  <span className="font-bold text-emerald-700">₹0</span>
+                  <span className="font-mono font-medium text-deep-forest">{cartTotalWeightFormatted}</span>
                 </div>
+
+                <div className="flex justify-between items-center">
+                  <span>Delivery ({deliveryInfo.isKaraikudi ? 'Karaikudi Local' : 'Courier Slab'}):</span>
+                  <span className="font-bold text-emerald-800 font-mono">
+                    {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}
+                  </span>
+                </div>
+
                 <div className="flex justify-between items-center text-sm font-bold text-deep-forest pt-2 border-t border-warm-sand/50">
-                  <span>Total Amount (COD)</span>
-                  <span className="text-base text-deep-forest">₹{cartTotal}</span>
+                  <span>Total Payable:</span>
+                  <span className="text-base font-extrabold text-deep-forest font-sans">
+                    ₹{grandTotal}
+                  </span>
                 </div>
               </div>
 
-              {/* Checkout Action or Non-Karaikudi Fallback */}
-              {isPincodeEligible ? (
-                <div>
-                  <button
-                    onClick={handleProceedCheckout}
-                    className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark active:scale-[0.98] transition-all shadow-botanical"
-                  >
-                    <span>Place Free Karaikudi COD Order</span>
-                    <ArrowRight className="w-4 h-4 text-champagne-gold" />
-                  </button>
-                  <p className="text-[10px] text-center text-charcoal/60 mt-1.5">
-                    Pay with Cash or UPI upon delivery at your doorstep (8 AM – 4 PM)
-                  </p>
-                </div>
-              ) : (
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-2">
-                  <p className="font-semibold leading-snug">
-                    We currently offer Free Cash on Delivery exclusively within Karaikudi.
-                  </p>
-                  <p className="text-[11px] text-charcoal/70">
-                    Pan-India shipping & Chennai live stalls are launching soon! Enter your WhatsApp number to get notified:
-                  </p>
+              {/* Checkout Action */}
+              <button
+                onClick={handleProceedCheckout}
+                className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark active:scale-[0.98] transition-all shadow-botanical"
+              >
+                <span>
+                  Proceed to Checkout • ₹{grandTotal}
+                </span>
+                <ArrowRight className="w-4 h-4 text-champagne-gold" />
+              </button>
 
-                  {waitlistSent ? (
-                    <div className="p-2 bg-emerald-100 text-emerald-800 rounded text-center text-xs font-bold">
-                      ✓ You are on the VIP Launch list!
-                    </div>
-                  ) : (
-                    <form onSubmit={handleWaitlistSubmit} className="flex gap-2">
-                      <input
-                        type="tel"
-                        value={waitlistPhone}
-                        onChange={(e) => setWaitlistPhone(e.target.value)}
-                        placeholder="WhatsApp Number"
-                        className="flex-1 px-2.5 py-1.5 rounded bg-white border border-amber-300 text-xs"
-                        required
-                      />
-                      <button
-                        type="submit"
-                        className="px-3 py-1.5 rounded bg-deep-forest text-botanical-ivory text-xs font-semibold"
-                      >
-                        Notify Me
-                      </button>
-                    </form>
-                  )}
-                </div>
-              )}
+              <p className="text-[10px] text-center text-charcoal/60">
+                Supports Cash on Delivery, GPay, PhonePe, Paytm & Cards
+              </p>
 
             </div>
           )}

@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product, CartItem, Order, OrderStatus, WaitlistEntry } from '../types';
+import { 
+  Product, 
+  CartItem, 
+  Order, 
+  CustomerProfile, 
+  CustomerAddress, 
+  PaymentMethod 
+} from '../types';
+import { calculateDelivery, DeliveryCalculation } from '../utils/delivery';
 import { isKaraikudiPincode } from '../config/storeConfig';
 import confetti from 'canvas-confetti';
 
@@ -8,6 +16,8 @@ interface StoreContextType {
   cart: CartItem[];
   cartCount: number;
   cartTotal: number;
+  cartTotalWeight: number;
+  cartTotalWeightFormatted: string;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -19,14 +29,26 @@ interface StoreContextType {
   activeProductModal: Product | null;
   setActiveProductModal: (product: Product | null) => void;
 
-  // Karaikudi Pincode Verification
+  // Delivery & Location Zone Logic
   customerPincode: string;
   setCustomerPincode: (pin: string) => void;
-  isPincodeEligible: boolean;
-  pincodeVerified: boolean;
-  verifyPincode: (pin: string) => { eligible: boolean; message: string };
+  customerCity: string;
+  setCustomerCity: (city: string) => void;
+  customerState: string;
+  setCustomerState: (state: string) => void;
+  deliveryInfo: DeliveryCalculation;
+  verifyPincode: (pin: string) => DeliveryCalculation;
 
-  // AI Consultant Modal / Drawer
+  // Customer Authentication (Mobile OTP)
+  customerProfile: CustomerProfile;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
+  loginCustomer: (phone: string, name: string) => void;
+  logoutCustomer: () => void;
+  updateCustomerProfile: (profile: Partial<CustomerProfile>) => void;
+  addSavedAddress: (addr: Omit<CustomerAddress, 'id'>) => void;
+
+  // AI Consultant Modal
   isAiAdvisorOpen: boolean;
   setIsAiAdvisorOpen: (open: boolean) => void;
 
@@ -34,18 +56,21 @@ interface StoreContextType {
   isCheckoutOpen: boolean;
   setIsCheckoutOpen: (open: boolean) => void;
 
-  // Order Management (Admin & User)
-  orders: Order[];
-  createOrder: (orderData: Omit<Order, 'id' | 'createdAt' | 'status' | 'shipping' | 'paymentMethod'>) => Order;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
-  
-  // Non-Karaikudi Waitlist
-  waitlist: WaitlistEntry[];
-  addToWaitlist: (phone: string, pincode: string, city?: string) => void;
-
-  // View state: 'store' | 'admin'
-  currentView: 'store' | 'admin';
-  setCurrentView: (view: 'store' | 'admin') => void;
+  // Orders Placed by Customer
+  customerOrders: Order[];
+  placeCustomerOrder: (orderPayload: {
+    customerName: string;
+    phone: string;
+    alternatePhone?: string;
+    address: string;
+    landmark?: string;
+    city: string;
+    state: string;
+    pincode: string;
+    deliverySlot?: string;
+    notes?: string;
+    paymentMethod: PaymentMethod;
+  }) => Order;
 
   // Toast Notification
   toastMessage: string | null;
@@ -53,97 +78,6 @@ interface StoreContextType {
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
-
-// Sample Initial Orders in Karaikudi to showcase delivery workflow
-const INITIAL_SAMPLE_ORDERS: Order[] = [
-  {
-    id: 'ZN-KRI-1082',
-    createdAt: '2026-11-13T09:15:00.000Z',
-    customerName: 'Meenakshi Sundaram',
-    phone: '98421 78430',
-    alternatePhone: '94432 11098',
-    address: 'Plot 42, 3rd Street, Subramaniapuram',
-    landmark: 'Behind Alagappa Matric School',
-    pincode: '630006',
-    deliverySlot: 'Daily: 8:00 AM – 12:00 PM',
-    items: [
-      {
-        productId: 'zn-001',
-        productName: 'Botanical Glow Face Serum',
-        price: 649,
-        quantity: 1,
-        volume: '30 ml'
-      },
-      {
-        productId: 'zn-003',
-        productName: 'Nourishing Face Cream with Saffron & Shea',
-        price: 549,
-        quantity: 1,
-        volume: '50 g'
-      }
-    ],
-    subtotal: 1198,
-    shipping: 0,
-    total: 1198,
-    status: 'Delivered',
-    paymentMethod: 'Karaikudi Exclusive Free COD'
-  },
-  {
-    id: 'ZN-KRI-1083',
-    createdAt: '2026-11-13T10:45:00.000Z',
-    customerName: 'Anitha Chidambaram',
-    phone: '94426 55891',
-    address: 'No. 18, College Road, Sekkalai',
-    landmark: 'Opposite Chettinad Silks',
-    pincode: '630001',
-    deliverySlot: 'Daily: 12:00 PM – 4:00 PM',
-    items: [
-      {
-        productId: 'zn-005',
-        productName: 'Herbal Hair Oil with 18 Chettinad Botanicals',
-        price: 399,
-        quantity: 2,
-        volume: '200 ml'
-      },
-      {
-        productId: 'zn-002',
-        productName: 'Herbal Shampoo with Bhringraj & Shikakai',
-        price: 499,
-        quantity: 1,
-        volume: '300 ml'
-      }
-    ],
-    subtotal: 1297,
-    shipping: 0,
-    total: 1297,
-    status: 'Out for Delivery',
-    paymentMethod: 'Karaikudi Exclusive Free COD'
-  },
-  {
-    id: 'ZN-KRI-1084',
-    createdAt: '2026-11-13T11:30:00.000Z',
-    customerName: 'Kavitha Ramasamy',
-    phone: '97871 23490',
-    address: 'B-7, Staff Quarters, Alagappa University Campus',
-    landmark: 'Near Central Library',
-    pincode: '630003',
-    deliverySlot: 'Daily: 12:00 PM – 4:00 PM',
-    items: [
-      {
-        productId: 'zn-006',
-        productName: 'Radiant Ubtan Bath Powder (Traditional Nalangu Maavu)',
-        price: 349,
-        quantity: 2,
-        volume: '200 g'
-      }
-    ],
-    subtotal: 698,
-    shipping: 0,
-    total: 698,
-    status: 'Pending',
-    paymentMethod: 'Karaikudi Exclusive Free COD'
-  }
-];
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Cart state
@@ -159,40 +93,53 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAiAdvisorOpen, setIsAiAdvisorOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeProductModal, setActiveProductModal] = useState<Product | null>(null);
-  const [currentView, setCurrentView] = useState<'store' | 'admin'>('store');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Pincode state
+  // Location & Pincode state
   const [customerPincode, setCustomerPincode] = useState<string>(() => {
     try {
-      return localStorage.getItem('zn_customer_pincode') || '630001'; // Default to Karaikudi HPO for friendly initial demo
+      return localStorage.getItem('zn_customer_pincode') || '630001';
     } catch {
       return '630001';
     }
   });
 
-  const [pincodeVerified, setPincodeVerified] = useState<boolean>(true);
-  const [isPincodeEligible, setIsPincodeEligible] = useState<boolean>(true);
+  const [customerCity, setCustomerCity] = useState<string>('Karaikudi');
+  const [customerState, setCustomerState] = useState<string>('Tamil Nadu');
 
-  // Orders state
-  const [orders, setOrders] = useState<Order[]>(() => {
+  // Customer Profile State (Mobile Login)
+  const [customerProfile, setCustomerProfile] = useState<CustomerProfile>(() => {
     try {
-      const saved = localStorage.getItem('zn_orders');
-      return saved ? JSON.parse(saved) : INITIAL_SAMPLE_ORDERS;
-    } catch {
-      return INITIAL_SAMPLE_ORDERS;
+      const saved = localStorage.getItem('zn_customer_profile');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
     }
+    return {
+      name: '',
+      phone: '',
+      isLoggedIn: false,
+      addresses: [
+        {
+          id: 'addr-default',
+          street: '14, Subramaniapuram 2nd Street',
+          landmark: 'Near Alagappa Matriculation School',
+          city: 'Karaikudi',
+          state: 'Tamil Nadu',
+          pincode: '630006',
+          isDefault: true
+        }
+      ]
+    };
   });
 
-  // Waitlist state
-  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>(() => {
+  // Customer Orders List (Saved in unified localStorage shared store)
+  const [customerOrders, setCustomerOrders] = useState<Order[]>(() => {
     try {
-      const saved = localStorage.getItem('zn_waitlist');
-      return saved ? JSON.parse(saved) : [
-        { id: 'w-1', phone: '98401 23456', pincode: '600028', city: 'Chennai (R.A. Puram)', createdAt: '2026-11-12T10:00:00Z' },
-        { id: 'w-2', phone: '97908 98765', pincode: '625001', city: 'Madurai Central', createdAt: '2026-11-12T14:30:00Z' }
-      ];
+      const saved = localStorage.getItem('zn_shared_orders');
+      return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
@@ -207,33 +154,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [cart]);
 
-  // Persist orders
+  // Persist customer profile
   useEffect(() => {
     try {
-      localStorage.setItem('zn_orders', JSON.stringify(orders));
+      localStorage.setItem('zn_customer_profile', JSON.stringify(customerProfile));
     } catch (e) {
       console.error(e);
     }
-  }, [orders]);
+  }, [customerProfile]);
 
-  // Persist waitlist
+  // Persist customer orders
   useEffect(() => {
     try {
-      localStorage.setItem('zn_waitlist', JSON.stringify(waitlist));
+      localStorage.setItem('zn_shared_orders', JSON.stringify(customerOrders));
     } catch (e) {
       console.error(e);
     }
-  }, [waitlist]);
+  }, [customerOrders]);
 
-  // Persist pincode & recheck
+  // Persist pincode
   useEffect(() => {
     try {
       localStorage.setItem('zn_customer_pincode', customerPincode);
     } catch (e) {
       console.error(e);
     }
-    const eligible = isKaraikudiPincode(customerPincode);
-    setIsPincodeEligible(eligible);
   }, [customerPincode]);
 
   const showToast = (msg: string) => {
@@ -282,40 +227,124 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     0
   );
 
-  const verifyPincode = (pin: string) => {
-    const cleaned = pin.trim().replace(/\s+/g, '');
-    const valid = isKaraikudiPincode(cleaned);
-    setCustomerPincode(cleaned);
-    setPincodeVerified(true);
-    setIsPincodeEligible(valid);
+  // Total weight in grams (used for dynamic courier slab calculation)
+  const cartTotalWeight = cart.reduce(
+    (total, item) => total + (item.product.weightGrams || 200) * item.quantity,
+    0
+  );
 
-    if (valid) {
-      return {
-        eligible: true,
-        message: 'Eligible for FREE Karaikudi Cash on Delivery (Delivered Daily between 8:00 AM – 4:00 PM)'
-      };
-    } else {
-      return {
-        eligible: false,
-        message: 'We currently offer Free COD exclusively within Karaikudi. Pan-India shipping and Chennai stalls are launching soon!'
-      };
-    }
+  const cartTotalWeightFormatted = cartTotalWeight >= 1000 
+    ? `${(cartTotalWeight / 1000).toFixed(2)} kg` 
+    : `${cartTotalWeight} g`;
+
+  // Dynamic delivery calculation based on active Pincode, Cart Weight, and Subtotal
+  const deliveryInfo = calculateDelivery(customerPincode, cartTotalWeight, cartTotal);
+
+  const verifyPincode = (pin: string) => {
+    const cleaned = pin.trim().replace(/\D/g, '').slice(0, 6);
+    setCustomerPincode(cleaned);
+    return calculateDelivery(cleaned, cartTotalWeight, cartTotal);
   };
 
-  const createOrder = (
-    orderData: Omit<Order, 'id' | 'createdAt' | 'status' | 'shipping' | 'paymentMethod'>
-  ): Order => {
+  // Customer Auth Functions
+  const loginCustomer = (phone: string, name: string) => {
+    setCustomerProfile((prev) => ({
+      ...prev,
+      phone,
+      name: name || prev.name || 'Valued Customer',
+      isLoggedIn: true
+    }));
+  };
+
+  const logoutCustomer = () => {
+    setCustomerProfile((prev) => ({
+      ...prev,
+      isLoggedIn: false
+    }));
+    showToast("You have been signed out.");
+  };
+
+  const updateCustomerProfile = (updates: Partial<CustomerProfile>) => {
+    setCustomerProfile((prev) => ({ ...prev, ...updates }));
+  };
+
+  const addSavedAddress = (addr: Omit<CustomerAddress, 'id'>) => {
+    const newAddr: CustomerAddress = {
+      ...addr,
+      id: `addr-${Date.now()}`
+    };
+    setCustomerProfile((prev) => ({
+      ...prev,
+      addresses: [newAddr, ...prev.addresses]
+    }));
+    setCustomerPincode(addr.pincode);
+  };
+
+  // Customer Order Placement
+  const placeCustomerOrder = (payload: {
+    customerName: string;
+    phone: string;
+    alternatePhone?: string;
+    address: string;
+    landmark?: string;
+    city: string;
+    state: string;
+    pincode: string;
+    deliverySlot?: string;
+    notes?: string;
+    paymentMethod: PaymentMethod;
+  }): Order => {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
+    const isKaraikudi = isKaraikudiPincode(payload.pincode);
+    const orderZone = isKaraikudi ? 'Zone A (Karaikudi Local)' : 'Zone B (Rest of India Courier)';
+    const shipping = deliveryInfo.shippingFee;
+    const finalTotal = cartTotal + shipping;
+
+    const isOnlinePayment = payload.paymentMethod !== 'Cash on Delivery (COD)';
+
     const newOrder: Order = {
-      ...orderData,
-      id: `ZN-KRI-${randomNum}`,
+      id: `ZN-${isKaraikudi ? 'KRI' : 'IND'}-${randomNum}`,
       createdAt: new Date().toISOString(),
-      shipping: 0,
+      customerName: payload.customerName,
+      phone: payload.phone,
+      alternatePhone: payload.alternatePhone,
+      address: payload.address,
+      landmark: payload.landmark,
+      city: payload.city || customerCity,
+      state: payload.state || customerState,
+      pincode: payload.pincode,
+      zone: orderZone,
+      deliverySlot: payload.deliverySlot || (isKaraikudi ? 'Daily: 8:00 AM – 12:00 PM' : '2-4 Business Days Courier'),
+      courierCarrier: deliveryInfo.courierCarrier,
+      notes: payload.notes,
+      items: cart.map((item) => ({
+        productId: item.product.id,
+        productName: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        volume: item.product.volume,
+        weightGrams: item.product.weightGrams
+      })),
+      totalWeightGrams: cartTotalWeight,
+      subtotal: cartTotal,
+      shippingFee: shipping,
+      total: finalTotal,
       status: 'Pending',
-      paymentMethod: 'Karaikudi Exclusive Free COD'
+      paymentMethod: payload.paymentMethod,
+      paymentStatus: isOnlinePayment ? 'Paid (Online)' : 'Pending (COD)'
     };
 
-    setOrders((prev) => [newOrder, ...prev]);
+    // Update customer orders
+    setCustomerOrders((prev) => [newOrder, ...prev]);
+
+    // Also sync to global desktop store in localStorage
+    try {
+      const existingAllOrders = JSON.parse(localStorage.getItem('zn_shared_orders') || '[]');
+      localStorage.setItem('zn_shared_orders', JSON.stringify([newOrder, ...existingAllOrders]));
+    } catch (e) {
+      console.error(e);
+    }
+
     clearCart();
 
     // Trigger celebratory confetti
@@ -333,33 +362,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newOrder;
   };
 
-  const updateOrderStatus = (orderId: string, status: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status } : order
-      )
-    );
-    showToast(`Order ${orderId} updated to ${status}`);
-  };
-
-  const addToWaitlist = (phone: string, pincode: string, city?: string) => {
-    const entry: WaitlistEntry = {
-      id: `w-${Date.now()}`,
-      phone,
-      pincode,
-      city: city || 'Other Area in India',
-      createdAt: new Date().toISOString()
-    };
-    setWaitlist((prev) => [entry, ...prev]);
-    showToast("Thank you! You'll be notified on WhatsApp when we launch in your area.");
-  };
-
   return (
     <StoreContext.Provider
       value={{
         cart,
         cartCount,
         cartTotal,
+        cartTotalWeight,
+        cartTotalWeightFormatted,
         addToCart,
         removeFromCart,
         updateQuantity,
@@ -370,20 +380,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setActiveProductModal,
         customerPincode,
         setCustomerPincode,
-        isPincodeEligible,
-        pincodeVerified,
+        customerCity,
+        setCustomerCity,
+        customerState,
+        setCustomerState,
+        deliveryInfo,
         verifyPincode,
+        customerProfile,
+        isAuthModalOpen,
+        setIsAuthModalOpen,
+        loginCustomer,
+        logoutCustomer,
+        updateCustomerProfile,
+        addSavedAddress,
         isAiAdvisorOpen,
         setIsAiAdvisorOpen,
         isCheckoutOpen,
         setIsCheckoutOpen,
-        orders,
-        createOrder,
-        updateOrderStatus,
-        waitlist,
-        addToWaitlist,
-        currentView,
-        setCurrentView,
+        customerOrders,
+        placeCustomerOrder,
         toastMessage,
         showToast
       }}

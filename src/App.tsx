@@ -20,17 +20,18 @@ import { AIBeautyAdvisor } from './components/AIBeautyAdvisor';
 import { FloatingAiButton } from './components/FloatingAiButton';
 import { SearchModal } from './components/SearchModal';
 import { PincodeCheckerModal } from './components/PincodeCheckerModal';
-import { AdminDashboard } from './components/AdminDashboard';
+import { AuthModal } from './components/AuthModal';
 import { NotificationToast } from './components/NotificationToast';
 import { PRODUCTS } from './data/products';
 import { ProductCategory, SkinOrHairConcern, Product } from './types';
 
 const MainStoreContent: React.FC = () => {
   const { 
-    currentView, 
     activeProductModal, 
     setActiveProductModal,
-    setIsAiAdvisorOpen 
+    setIsAiAdvisorOpen,
+    isAuthModalOpen,
+    setIsAuthModalOpen
   } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | null>(null);
@@ -71,11 +72,6 @@ const MainStoreContent: React.FC = () => {
     const el = document.getElementById('bestsellers');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
-
-  // If staff/admin view is active, display the Order & Delivery Management Panel
-  if (currentView === 'admin') {
-    return <AdminDashboard />;
-  }
 
   return (
     <div className="min-h-screen bg-botanical-ivory text-charcoal flex flex-col font-sans selection:bg-champagne-gold/30">
@@ -160,6 +156,11 @@ const MainStoreContent: React.FC = () => {
       <PincodeCheckerModal
         isOpen={isPincodeModalOpen}
         onClose={() => setIsPincodeModalOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
 
       <NotificationToast />

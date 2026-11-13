@@ -29,7 +29,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     addToCart, 
     customerPincode, 
     verifyPincode, 
-    isPincodeEligible,
+    deliveryInfo,
     setIsCartOpen 
   } = useStore();
 
@@ -53,8 +53,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
   const handlePincodeCheck = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!inputPincode || inputPincode.length < 6) return;
     const res = verifyPincode(inputPincode);
-    setPincodeFeedback(res.message);
+    if (res.isKaraikudi) {
+      setPincodeFeedback('✓ 100% Free Doorstep Delivery in Karaikudi! Daily 8 AM – 4 PM.');
+    } else {
+      setPincodeFeedback(`✓ Delivery Available via Express Courier (${res.slabDescription}).`);
+    }
   };
 
   const handleAddToCart = () => {
@@ -230,9 +235,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 {/* Validation Feedback */}
                 {pincodeFeedback && (
                   <div className={`p-2 rounded-lg text-xs font-medium flex items-start gap-1.5 ${
-                    isPincodeEligible
+                    deliveryInfo.isKaraikudi
                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                      : 'bg-amber-50 text-amber-900 border border-amber-200'
+                      : 'bg-blue-50 text-blue-900 border border-blue-200'
                   }`}>
                     <Truck className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <span>{pincodeFeedback}</span>
