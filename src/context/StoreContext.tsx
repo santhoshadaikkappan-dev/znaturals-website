@@ -9,7 +9,7 @@ import {
 } from '../types';
 import { calculateDelivery, DeliveryCalculation } from '../utils/delivery';
 import { isKaraikudiPincode } from '../config/storeConfig';
-import { supabase, saveOrderToSupabase } from '../config/supabase';
+import { supabase } from '../config/supabase';
 import { syncOrderToGoogleSheet } from '../utils/googleSheetsSync';
 import confetti from 'canvas-confetti';
 
@@ -397,9 +397,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Update customer orders locally
     setCustomerOrders((prev) => [newOrder, ...prev]);
-
-    // Asynchronously save to Supabase Database (RLS handles guests & registered users)
-    saveOrderToSupabase(newOrder, customerProfile.id);
 
     // Asynchronously sync order to Google Sheets
     syncOrderToGoogleSheet(newOrder);

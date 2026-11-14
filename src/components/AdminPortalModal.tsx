@@ -14,7 +14,6 @@ import {
   Lock,
   ArrowRight
 } from 'lucide-react';
-import { supabase } from '../config/supabase';
 import { downloadOrdersCSV } from '../utils/googleSheetsSync';
 import { Order } from '../types';
 
@@ -42,7 +41,6 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({ isOpen, onCl
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Default Owner PIN: 1818 (based on user email prefix) or znaturals
     if (pinInput.trim() === '1818' || pinInput.trim() === 'znaturals') {
       setIsAuthenticated(true);
       setPinError(false);
@@ -51,51 +49,14 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({ isOpen, onCl
     }
   };
 
-  const fetchAdminOrders = async () => {
+  const fetchAdminOrders = () => {
     setIsLoading(true);
     try {
-      // 1. Fetch live from Supabase orders table
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (data && data.length > 0) {
-        const formatted: Order[] = data.map((d: any) => ({
-          id: d.id,
-          createdAt: d.created_at,
-          userId: d.user_id,
-          customerName: d.customer_name,
-          phone: d.phone,
-          alternatePhone: d.alternate_phone,
-          address: d.address,
-          landmark: d.landmark,
-          city: d.city,
-          state: d.state,
-          pincode: d.pincode,
-          zone: d.zone,
-          deliverySlot: d.delivery_slot,
-          notes: d.notes,
-          items: d.items || [],
-          totalWeightGrams: d.total_weight_grams || 250,
-          subtotal: d.subtotal || d.total,
-          shippingFee: d.shipping_fee || 0,
-          total: d.total,
-          status: d.status || 'Pending',
-          paymentMethod: d.payment_method,
-          paymentStatus: d.payment_status || 'Pending (COD)',
-          upiUtr: d.upi_utr
-        }));
-        setOrders(formatted);
-      } else {
-        // Fallback to local storage if supabase table has no rows yet
-        const local = JSON.parse(localStorage.getItem('zn_shared_orders') || '[]');
-        setOrders(local);
-      }
-    } catch (err) {
-      console.warn("Could not fetch from Supabase, loading local orders:", err);
       const local = JSON.parse(localStorage.getItem('zn_shared_orders') || '[]');
       setOrders(local);
+    } catch (err) {
+      console.warn("Could not load local orders:", err);
+      setOrders([]);
     } finally {
       setIsLoading(false);
     }
