@@ -7,7 +7,7 @@ export const SUPABASE_URL = "https://tucgcwpkoetikobygrbu.supabase.co";
 // Read from Vite environment or use public client key
 export const SUPABASE_ANON_KEY = 
   import.meta.env.VITE_SUPABASE_ANON_KEY || 
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1Y2djd3Brb2V0aWtvYnlncmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2MzgwMDB9.placeholder_key_until_env_provided";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1Y2djd3Brb2V0aWtvYnlncmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MzQ4ODksImV4cCI6MjEwNTIxMDg4OX0.CXTj9SLMi5wZBiwAqDgmNJHB4piRMwGRHwWpwFwTflA";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
