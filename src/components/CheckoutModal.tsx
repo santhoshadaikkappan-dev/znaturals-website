@@ -26,6 +26,7 @@ import { isKaraikudiPincode } from '../config/storeConfig';
 import { requestBrowserGeolocation } from '../utils/geolocation';
 import { launchRazorpayCheckout } from '../config/razorpay';
 import { downloadOrdersCSV } from '../utils/googleSheetsSync';
+import { printSingleOrderSlip } from '../utils/printOrder';
 import { Order, PaymentMethod } from '../types';
 
 export const CheckoutModal: React.FC = () => {
@@ -354,7 +355,7 @@ export const CheckoutModal: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => printSingleOrderSlip(completedOrder)}
                   className="py-3 px-3 rounded-xl border border-warm-sand bg-white hover:bg-gray-50 text-deep-forest font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs"
                 >
                   <Printer className="w-3.5 h-3.5 text-sage-green" />

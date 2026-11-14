@@ -15,6 +15,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { downloadOrdersCSV } from '../utils/googleSheetsSync';
+import { printSingleOrderSlip } from '../utils/printOrder';
 import { Order } from '../types';
 
 interface AdminPortalModalProps {
@@ -41,12 +42,16 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({ isOpen, onCl
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput.trim() === '1818' || pinInput.trim() === 'znaturals') {
+    if (pinInput.trim() === '1749') {
       setIsAuthenticated(true);
       setPinError(false);
     } else {
       setPinError(true);
     }
+  };
+
+  const printSingleOrder = (ord: Order) => {
+    printSingleOrderSlip(ord);
   };
 
   const fetchAdminOrders = () => {
@@ -138,13 +143,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({ isOpen, onCl
                   maxLength={10}
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
-                  placeholder="Enter PIN (Default: 1818)"
+                  placeholder="Enter 4-Digit Owner PIN"
                   className="w-full text-center py-3 px-4 rounded-xl border border-warm-sand text-lg font-mono tracking-widest focus:outline-none focus:border-deep-forest"
                 />
 
                 {pinError && (
                   <p className="text-xs text-red-600 font-semibold">
-                    Incorrect PIN. Please enter 1818.
+                    Incorrect PIN. Please try again.
                   </p>
                 )}
 
@@ -335,7 +340,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({ isOpen, onCl
                           <span>Export Bill</span>
                         </button>
                         <button
-                          onClick={() => window.print()}
+                          onClick={() => printSingleOrderSlip(ord)}
                           className="px-2.5 py-1 rounded-lg border border-warm-sand hover:bg-gray-50 text-deep-forest font-semibold text-[11px] flex items-center gap-1"
                         >
                           <Printer className="w-3 h-3 text-sage-green" />
