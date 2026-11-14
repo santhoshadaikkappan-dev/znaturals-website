@@ -1,155 +1,134 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
+import { Order } from '../types';
 
-// Default Supabase project configuration (Can be overridden via .env)
-const envUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const envAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Supabase Project Credentials
+export const SUPABASE_URL = "https://tucgcwpkoetikobygrbu.supabase.co";
 
-// Fallback project configuration if environment variables are not set yet
-export const SUPABASE_URL = envUrl || 'https://znaturals-official.supabase.co';
-export const SUPABASE_ANON_KEY = envAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder';
+// Read from Vite environment or use public client key
+export const SUPABASE_ANON_KEY = 
+  import.meta.env.VITE_SUPABASE_ANON_KEY || 
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1Y2djd3Brb2V0aWtvYnlncmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2MzgwMDB9.placeholder_key_until_env_provided";
 
-export const isSupabaseConfigured = (): boolean => {
-  return Boolean(
-    envUrl && 
-    envAnonKey && 
-    !envUrl.includes('placeholder') && 
-    !envAnonKey.includes('placeholder')
-  );
-};
-
-// Create Supabase singleton client
-export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
+    detectSessionInUrl: true
+  }
 });
 
 /**
- * 1-Click Google OAuth Sign-In via Supabase
+ * 1-Click Google OAuth Sign-In
  */
 export const signInWithGoogle = async () => {
-  if (!isSupabaseConfigured()) {
-    console.info("Supabase credentials not configured in .env yet. Running in simulation mode.");
-    return { data: null, error: new Error("SUPABASE_NOT_CONFIGURED") };
-  }
-
-  return await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin,
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
-      },
-    },
+      redirectTo: window.location.origin
+    }
   });
+  if (error) throw error;
+  return data;
 };
 
 /**
- * Send 6-Digit Passwordless Email OTP via Supabase
+ * Send 6-Digit Email OTP
  */
 export const sendEmailOtp = async (email: string) => {
-  if (!isSupabaseConfigured()) {
-    console.info("Supabase not configured in .env. Falling back to test OTP code.");
-    return { data: null, error: new Error("SUPABASE_NOT_CONFIGURED") };
-  }
-
-  return await supabase.auth.signInWithOtp({
+  const { data, error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      shouldCreateUser: true,
-    },
+      shouldCreateUser: true
+    }
   });
+  if (error) throw error;
+  return data;
 };
 
 /**
- * Verify 6-Digit Email OTP Code via Supabase
+ * Verify 6-Digit Email OTP
  */
 export const verifyEmailOtp = async (email: string, token: string) => {
-  if (!isSupabaseConfigured()) {
-    return { data: null, error: new Error("SUPABASE_NOT_CONFIGURED") };
-  }
-
-  return await supabase.auth.verifyOtp({
+  const { data, error } = await supabase.auth.verifyOtp({
     email,
     token,
-    type: 'email',
+    type: 'email'
   });
+  if (error) throw error;
+  return data;
 };
 
 /**
- * Sign out of Supabase session
+ * Sign out customer
  */
-export const signOutSupabase = async () => {
-  if (!isSupabaseConfigured()) return { error: null };
-  return await supabase.auth.signOut();
+export const signOutUser = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 };
 
 /**
- * Save Guest or Authenticated Order into Supabase Database
+ * Insert Order and Order Items into Supabase
+ * Handles both authenticated customers and Express Guest checkouts safely
  */
-export const insertSupabaseOrder = async (orderData: {
-  id: string;
-  user_id?: string | null;
-  customer_name: string;
-  customer_phone: string;
-  customer_email?: string | null;
-  is_guest: boolean;
-  pincode: string;
-  city: string;
-  state: string;
-  address: string;
-  landmark?: string | null;
-  delivery_slot?: string | null;
-  payment_method: string;
-  upi_transaction_id?: string | null;
-  payment_status: string;
-  order_status: string;
-  subtotal: number;
-  shipping_fee: number;
-  grand_total: number;
-  total_weight_grams: number;
-  notes?: string | null;
-}, items: Array<{
-  product_id: string;
-  product_name: string;
-  product_volume: string;
-  quantity: number;
-  price: number;
-  total_price: number;
-}>) => {
-  if (!isSupabaseConfigured()) {
-    console.info("Simulating Supabase order insertion (mock database active).");
-    return { data: { id: orderData.id }, error: null };
-  }
-
+export const saveOrderToSupabase = async (order: Order, userId?: string) => {
   try {
-    // 1. Insert order header
-    const { data: order, error: orderError } = await supabase
+    // 1. Insert into public.orders table
+    const { error: orderError } = await supabase
       .from('orders')
-      .insert([orderData])
-      .select()
-      .single();
+      .insert({
+        id: order.id,
+        user_id: userId || null,
+        customer_name: order.customerName,
+        phone: order.phone,
+        alternate_phone: order.alternatePhone || null,
+        address: order.address,
+        landmark: order.landmark || null,
+        city: order.city,
+        state: order.state,
+        pincode: order.pincode,
+        zone: order.zone,
+        delivery_slot: order.deliverySlot || null,
+        notes: order.notes || null,
+        subtotal: order.subtotal,
+        shipping_fee: order.shippingFee,
+        total: order.total,
+        total_weight_grams: order.totalWeightGrams,
+        status: order.status,
+        payment_method: order.paymentMethod,
+        payment_status: order.paymentStatus,
+        upi_utr: order.upiUtr || null,
+        items: order.items
+      });
 
-    if (orderError) throw orderError;
+    if (orderError) {
+      console.warn("Supabase orders table insert notice (Run supabase_schema.sql if table is missing):", orderError.message);
+      return false;
+    }
 
-    // 2. Insert order items
-    const formattedItems = items.map(item => ({
-      order_id: orderData.id,
-      ...item
-    }));
+    // 2. Insert into public.order_items table
+    if (order.items && order.items.length > 0) {
+      const itemsPayload = order.items.map((item) => ({
+        order_id: order.id,
+        product_id: item.productId,
+        product_name: item.productName,
+        price: item.price,
+        quantity: item.quantity,
+        volume: item.volume,
+        weight_grams: item.weightGrams
+      }));
 
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(formattedItems);
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(itemsPayload);
 
-    if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.warn("Supabase order_items table insert notice:", itemsError.message);
+      }
+    }
 
-    return { data: order, error: null };
-  } catch (err: any) {
-    console.error("Supabase order insert error:", err);
-    return { data: null, error: err };
+    return true;
+  } catch (err) {
+    console.warn("Supabase order sync error:", err);
+    return false;
   }
 };

@@ -9,15 +9,7 @@ import {
 } from '../types';
 import { calculateDelivery, DeliveryCalculation } from '../utils/delivery';
 import { isKaraikudiPincode } from '../config/storeConfig';
-import { 
-  supabase, 
-  isSupabaseConfigured, 
-  signInWithGoogle, 
-  sendEmailOtp, 
-  verifyEmailOtp, 
-  signOutSupabase, 
-  insertSupabaseOrder 
-} from '../config/supabase';
+import { supabase, saveOrderToSupabase } from '../config/supabase';
 import confetti from 'canvas-confetti';
 
 interface StoreContextType {
@@ -48,14 +40,11 @@ interface StoreContextType {
   deliveryInfo: DeliveryCalculation;
   verifyPincode: (pin: string) => DeliveryCalculation;
 
-  // Customer Authentication (Supabase Google & Email OTP)
+  // Customer Authentication (Mobile OTP)
   customerProfile: CustomerProfile;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
-  loginCustomer: (phoneOrEmail: string, name: string) => void;
-  loginWithGoogle: () => Promise<void>;
-  sendEmailLoginOtp: (email: string) => Promise<{ success: boolean; message: string; mockOtp?: string }>;
-  verifyEmailLoginOtp: (email: string, token: string) => Promise<{ success: boolean; message: string }>;
+  loginCustomer: (phone: string, name: string) => void;
   logoutCustomer: () => void;
   updateCustomerProfile: (profile: Partial<CustomerProfile>) => void;
   addSavedAddress: (addr: Omit<CustomerAddress, 'id'>) => void;
@@ -74,7 +63,6 @@ interface StoreContextType {
     customerName: string;
     phone: string;
     alternatePhone?: string;
-    customerEmail?: string;
     address: string;
     landmark?: string;
     city: string;
@@ -83,7 +71,7 @@ interface StoreContextType {
     deliverySlot?: string;
     notes?: string;
     paymentMethod: PaymentMethod;
-    upiTransactionId?: string;
+    upiUtr?: string;
   }) => Order;
 
   // Toast Notification
@@ -260,115 +248,65 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return calculateDelivery(cleaned, cartTotalWeight, cartTotal);
   };
 
-  // Customer Auth Functions
+  // Sync Supabase Auth state changes
   useEffect(() => {
-    if (isSupabaseConfigured()) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          setCustomerProfile((prev) => ({
-            ...prev,
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || prev.name || 'Valued Customer',
-            isLoggedIn: true
-          }));
-        }
-      });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const u = session.user;
+        const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Valued Customer';
+        setCustomerProfile((prev) => ({
+          ...prev,
+          id: u.id,
+          name: name,
+          email: u.email || '',
+          phone: prev.phone || u.phone || '',
+          isLoggedIn: true
+        }));
+      }
+    });
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) {
-          setCustomerProfile((prev) => ({
-            ...prev,
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || prev.name || 'Valued Customer',
-            isLoggedIn: true
-          }));
-        } else if (_event === 'SIGNED_OUT') {
-          setCustomerProfile((prev) => ({
-            ...prev,
-            isLoggedIn: false
-          }));
-        }
-      });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const u = session.user;
+        const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Valued Customer';
+        setCustomerProfile((prev) => ({
+          ...prev,
+          id: u.id,
+          name: name,
+          email: u.email || '',
+          phone: prev.phone || u.phone || '',
+          isLoggedIn: true
+        }));
+      } else {
+        setCustomerProfile((prev) => ({
+          ...prev,
+          id: undefined,
+          email: undefined,
+          isLoggedIn: false
+        }));
+      }
+    });
 
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const loginCustomer = (phoneOrEmail: string, name: string) => {
+  // Customer Auth Functions
+  const loginCustomer = (phone: string, name: string) => {
     setCustomerProfile((prev) => ({
       ...prev,
-      phone: phoneOrEmail.includes('@') ? prev.phone : phoneOrEmail,
-      email: phoneOrEmail.includes('@') ? phoneOrEmail : prev.email,
+      phone,
       name: name || prev.name || 'Valued Customer',
       isLoggedIn: true
     }));
   };
 
-  const loginWithGoogle = async () => {
-    const { error } = await signInWithGoogle();
-    if (error && error.message === 'SUPABASE_NOT_CONFIGURED') {
-      setCustomerProfile((prev) => ({
-        ...prev,
-        name: 'Botanical Patron',
-        email: 'patron@znaturals.in',
-        isLoggedIn: true
-      }));
-      showToast("Signed in as Demo Botanical Patron (Supabase simulation)");
-    } else if (error) {
-      showToast(error.message || "Failed to sign in with Google");
-    }
-  };
-
-  const sendEmailLoginOtp = async (email: string) => {
-    const { error } = await sendEmailOtp(email);
-    if (error && error.message === 'SUPABASE_NOT_CONFIGURED') {
-      const mockCode = Math.floor(100000 + Math.random() * 900000).toString();
-      return { success: true, message: `Demo Code: ${mockCode}`, mockOtp: mockCode };
-    } else if (error) {
-      return { success: false, message: error.message };
-    }
-    return { success: true, message: "6-digit OTP code sent to your email!" };
-  };
-
-  const verifyEmailLoginOtp = async (email: string, token: string) => {
-    const { data, error } = await verifyEmailOtp(email, token);
-    if (error && error.message === 'SUPABASE_NOT_CONFIGURED') {
-      setCustomerProfile((prev) => ({
-        ...prev,
-        email,
-        name: email.split('@')[0],
-        isLoggedIn: true
-      }));
-      return { success: true, message: "Verified successfully!" };
-    } else if (error) {
-      return { success: false, message: error.message };
-    }
-
-    const authUser = data && 'user' in data ? data.user : null;
-    if (authUser) {
-      setCustomerProfile((prev) => ({
-        ...prev,
-        id: authUser.id,
-        email: authUser.email || email,
-        name: authUser.user_metadata?.full_name || email.split('@')[0],
-        isLoggedIn: true
-      }));
-    }
-    return { success: true, message: "Logged in successfully!" };
-  };
-
-  const logoutCustomer = async () => {
-    try {
-      await signOutSupabase();
-    } catch (e) {
-      console.warn("Supabase signout:", e);
-    }
+  const logoutCustomer = () => {
     setCustomerProfile((prev) => ({
       ...prev,
+      id: undefined,
+      email: undefined,
       isLoggedIn: false
     }));
     showToast("You have been signed out.");
@@ -395,7 +333,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     customerName: string;
     phone: string;
     alternatePhone?: string;
-    customerEmail?: string;
     address: string;
     landmark?: string;
     city: string;
@@ -404,7 +341,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     deliverySlot?: string;
     notes?: string;
     paymentMethod: PaymentMethod;
-    upiTransactionId?: string;
+    upiUtr?: string;
   }): Order => {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const isKaraikudi = isKaraikudiPincode(payload.pincode);
@@ -412,16 +349,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const shipping = deliveryInfo.shippingFee;
     const finalTotal = cartTotal + shipping;
 
-    const isOnlinePayment = payload.paymentMethod !== 'Cash on Delivery (COD)';
+    const isOnlinePayment = payload.paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)';
 
     const newOrder: Order = {
       id: `ZN-${isKaraikudi ? 'KRI' : 'IND'}-${randomNum}`,
       createdAt: new Date().toISOString(),
+      userId: customerProfile.id,
       customerName: payload.customerName,
       phone: payload.phone,
       alternatePhone: payload.alternatePhone,
-      customerEmail: payload.customerEmail || customerProfile.email,
-      isGuest: !customerProfile.isLoggedIn,
       address: payload.address,
       landmark: payload.landmark,
       city: payload.city || customerCity,
@@ -446,11 +382,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       status: 'Pending',
       paymentMethod: payload.paymentMethod,
       paymentStatus: isOnlinePayment ? 'Paid (Online)' : 'Pending (COD)',
-      upiTransactionId: payload.upiTransactionId
+      upiUtr: payload.upiUtr
     };
 
     // Update customer orders locally
     setCustomerOrders((prev) => [newOrder, ...prev]);
+
+    // Asynchronously save to Supabase Database (RLS handles guests & registered users)
+    saveOrderToSupabase(newOrder, customerProfile.id);
 
     // Also sync to global desktop store in localStorage
     try {
@@ -459,38 +398,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e) {
       console.error(e);
     }
-
-    // Background sync to Supabase database with strict RLS
-    insertSupabaseOrder({
-      id: newOrder.id,
-      user_id: customerProfile.id || null,
-      customer_name: newOrder.customerName,
-      customer_phone: newOrder.phone,
-      customer_email: newOrder.customerEmail || null,
-      is_guest: Boolean(newOrder.isGuest),
-      pincode: newOrder.pincode,
-      city: newOrder.city,
-      state: newOrder.state,
-      address: newOrder.address,
-      landmark: newOrder.landmark || null,
-      delivery_slot: newOrder.deliverySlot || null,
-      payment_method: newOrder.paymentMethod,
-      upi_transaction_id: newOrder.upiTransactionId || null,
-      payment_status: newOrder.paymentStatus,
-      order_status: 'pending',
-      subtotal: newOrder.subtotal,
-      shipping_fee: newOrder.shippingFee,
-      grand_total: newOrder.total,
-      total_weight_grams: newOrder.totalWeightGrams,
-      notes: newOrder.notes || null,
-    }, newOrder.items.map(item => ({
-      product_id: item.productId,
-      product_name: item.productName,
-      product_volume: item.volume,
-      quantity: item.quantity,
-      price: item.price,
-      total_price: item.price * item.quantity
-    }))).catch(err => console.warn("Supabase background order sync:", err));
 
     clearCart();
 
@@ -537,9 +444,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         isAuthModalOpen,
         setIsAuthModalOpen,
         loginCustomer,
-        loginWithGoogle,
-        sendEmailLoginOtp,
-        verifyEmailLoginOtp,
         logoutCustomer,
         updateCustomerProfile,
         addSavedAddress,

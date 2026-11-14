@@ -61,12 +61,13 @@ export interface CartItem {
 export type DeliveryZone = 'Zone A (Karaikudi Local)' | 'Zone B (Rest of India Courier)';
 
 export type PaymentMethod = 
+  | 'Free Cash / UPI at Delivery (Karaikudi Exclusive)'
+  | 'Pay Online Now via Instant UPI (Zero Fee)'
   | 'Cash on Delivery (COD)' 
-  | 'Online UPI (GPay / PhonePe / Paytm / QR)'
   | 'Google Pay' 
   | 'PhonePe' 
   | 'Paytm' 
-  | 'Supermoney' 
+  | 'Supermoney'
   | 'BHIM / Any UPI App'
   | 'Cards & Net Banking';
 
@@ -84,11 +85,10 @@ export interface OrderItem {
 export interface Order {
   id: string;
   createdAt: string;
+  userId?: string;
   customerName: string;
   phone: string;
   alternatePhone?: string;
-  customerEmail?: string;
-  isGuest?: boolean;
   address: string;
   landmark?: string;
   city: string;
@@ -106,8 +106,8 @@ export interface Order {
   status: OrderStatus;
   paymentMethod: PaymentMethod;
   paymentStatus: 'Pending (COD)' | 'Paid (Online)';
-  upiTransactionId?: string;
   assignedRider?: string;
+  upiUtr?: string;
 }
 
 export interface CustomerAddress {
@@ -123,8 +123,8 @@ export interface CustomerAddress {
 export interface CustomerProfile {
   id?: string;
   name: string;
-  phone: string;
   email?: string;
+  phone: string;
   isLoggedIn: boolean;
   addresses: CustomerAddress[];
 }

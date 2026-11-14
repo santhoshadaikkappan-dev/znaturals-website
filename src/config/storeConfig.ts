@@ -21,11 +21,6 @@ export const BRAND_CONFIG = {
     email: "care@znaturals.in",
     karaikudiLocation: "Near New Bus Stand, Karaikudi, Tamil Nadu 630001",
   },
-  upi: {
-    id: "9344087944@upi",
-    payeeName: "Z NATURALS",
-    merchantCode: "5499",
-  },
   delivery: {
     policyTitle: "Exclusive Free Cash on Delivery (COD) in Karaikudi",
     dailyWindow: "Daily Delivery: 8:00 AM – 4:00 PM",
