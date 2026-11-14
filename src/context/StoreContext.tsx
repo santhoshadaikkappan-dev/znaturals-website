@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { calculateDelivery, DeliveryCalculation } from '../utils/delivery';
 import { isKaraikudiPincode } from '../config/storeConfig';
+import { saveCustomerAccount } from '../utils/customerAccountsManager';
 import confetti from 'canvas-confetti';
 
 interface StoreContextType {
@@ -248,12 +249,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Customer Auth Functions
   const loginCustomer = (phone: string, name: string) => {
+    const finalName = name || 'Valued Customer';
     setCustomerProfile((prev) => ({
       ...prev,
       phone,
-      name: name || prev.name || 'Valued Customer',
+      name: finalName,
       isLoggedIn: true
     }));
+    saveCustomerAccount({
+      name: finalName,
+      phone,
+      verifiedVia: 'WhatsApp'
+    });
   };
 
   const logoutCustomer = () => {

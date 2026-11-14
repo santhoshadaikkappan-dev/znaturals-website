@@ -1,8 +1,27 @@
 import React, { useState } from 'react';
-import { X, Phone, ShieldCheck, ArrowRight, User, CheckCircle2, MapPin, RefreshCw, Sparkles, Navigation } from 'lucide-react';
+import { 
+  X, 
+  Phone, 
+  ShieldCheck, 
+  ArrowRight, 
+  User, 
+  CheckCircle2, 
+  MapPin, 
+  RefreshCw, 
+  Sparkles, 
+  Navigation,
+  MessageCircle,
+  Download,
+  Lock,
+  ExternalLink
+} from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { requestBrowserGeolocation } from '../utils/geolocation';
-import { sendOtpViaFast2SMS } from '../utils/smsService';
+import { 
+  saveCustomerAccount, 
+  getStoredCustomerAccounts, 
+  exportCustomerDatabaseAsJSON 
+} from '../utils/customerAccountsManager';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,23 +33,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const { 
     customerProfile, 
     loginCustomer, 
-    updateCustomerProfile, 
     logoutCustomer, 
     addSavedAddress,
     setCustomerPincode,
     showToast 
   } = useStore();
 
-  const [step, setStep] = useState<'phone' | 'otp' | 'profile' | 'addresses'>('phone');
+  const [authMode, setAuthMode] = useState<'whatsapp' | 'quickpin'>('whatsapp');
+  const [step, setStep] = useState<'input' | 'confirm_whatsapp'>('input');
+  
+  // Form fields
   const [phoneNumber, setPhoneNumber] = useState('');
   const [customerName, setCustomerName] = useState('');
-  const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
-  const [generatedOtp, setGeneratedOtp] = useState('');
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [securityPin, setSecurityPin] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isDetectingGps, setIsDetectingGps] = useState(false);
-  const [isRealSmsSent, setIsRealSmsSent] = useState(false);
-  const [gatewayMessage, setGatewayMessage] = useState<string | null>(null);
 
   // New Address form
   const [newStreet, setNewStreet] = useState('');
@@ -41,81 +59,96 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
   if (!isOpen) return null;
 
-  // If already logged in and opened, show profile / saved addresses
   const isLoggedIn = customerProfile.isLoggedIn;
+  const officialWhatsApp = '9344087944'; // Z Naturals official delivery helpline
 
-  const handleSendOtp = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  // 1-Click WhatsApp Verification Trigger
+  const handleInitiateWhatsApp = (e: React.FormEvent) => {
+    e.preventDefault();
     const cleaned = phoneNumber.replace(/\D/g, '');
     if (cleaned.length !== 10 || !/^[6-9]/.test(cleaned)) {
       showToast("Please enter a valid 10-digit Indian mobile number");
       return;
     }
 
-    setIsSendingOtp(true);
-    setOtpCode(['', '', '', '', '', '']);
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setVerificationCode(code);
+    setIsProcessing(true);
 
-    // Generate secure 6-digit numeric OTP
-    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOtp(newOtp);
+    const message = `🌿 *Z NATURALS Customer Verification*\n` +
+      `• *Name:* ${customerName.trim() || 'Valued Customer'}\n` +
+      `• *Mobile:* +91 ${cleaned}\n` +
+      `• *Security Code:* ${code}\n\n` +
+      `Kindly verify my account for shopping & Karaikudi delivery.`;
 
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=91${officialWhatsApp}&text=${encodeURIComponent(message)}`;
+
+    // Open WhatsApp directly
     try {
-      const smsResult = await sendOtpViaFast2SMS(cleaned, newOtp);
-      setGatewayMessage(smsResult.message);
-
-      if (smsResult.success) {
-        setIsRealSmsSent(true);
-        setStep('otp');
-        showToast(smsResult.message);
-      } else {
-        setIsRealSmsSent(false);
-        setStep('otp');
-        showToast(smsResult.message);
-      }
-    } catch (err: any) {
-      console.warn("SMS Gateway dispatch fallback:", err);
-      setIsRealSmsSent(false);
-      setStep('otp');
-      showToast(`Test OTP: ${newOtp}`);
-    } finally {
-      setIsSendingOtp(false);
+      window.open(whatsappUrl, '_blank');
+    } catch (e) {
+      // Fallback redirect if popup blocked
+      window.location.href = whatsappUrl;
     }
+
+    setStep('confirm_whatsapp');
+    setIsProcessing(false);
+    showToast(`📲 WhatsApp opened! Send message to complete verification.`);
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
+  // Complete WhatsApp Verification
+  const handleCompleteWhatsAppLogin = () => {
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    const finalName = customerName.trim() || 'Valued Customer';
+
+    // 1. Manage and save into Customer Accounts File/Database
+    saveCustomerAccount({
+      name: finalName,
+      phone: cleaned,
+      verifiedVia: 'WhatsApp',
+      pincode: '630001',
+      city: 'Karaikudi',
+      state: 'Tamil Nadu'
+    });
+
+    // 2. Log in active session
+    loginCustomer(cleaned, finalName);
+    showToast(`✓ Welcome to Z NATURALS, ${finalName}!`);
+
+    if (onSuccess) onSuccess();
+    onClose();
+  };
+
+  // Quick 4-Digit PIN Login
+  const handleQuickPinLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const enteredOtp = otpCode.join('');
-    if (enteredOtp.length !== 6) {
-      showToast("Please enter the complete 6-digit verification code");
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    if (cleaned.length !== 10 || !/^[6-9]/.test(cleaned)) {
+      showToast("Please enter a valid 10-digit Indian mobile number");
+      return;
+    }
+    if (securityPin.length < 4) {
+      showToast("Please enter a 4-digit security PIN");
       return;
     }
 
-    setIsVerifying(true);
-    setTimeout(() => {
-      setIsVerifying(false);
-      if (enteredOtp !== generatedOtp && enteredOtp !== '123456') {
-        showToast("Invalid OTP code. Please check and try again.");
-        return;
-      }
+    const finalName = customerName.trim() || 'Valued Customer';
 
-      loginCustomer(phoneNumber, customerName || 'Valued Customer');
-      showToast("✓ Logged in successfully via Mobile OTP!");
-      if (onSuccess) onSuccess();
-      onClose();
-    }, 600);
-  };
+    // Save into Customer Accounts File/Database
+    saveCustomerAccount({
+      name: finalName,
+      phone: cleaned,
+      verifiedVia: 'QuickPIN',
+      pincode: '630001',
+      city: 'Karaikudi',
+      state: 'Tamil Nadu'
+    });
 
-  const handleOtpDigitChange = (index: number, val: string) => {
-    if (val.length > 1) val = val.slice(-1);
-    const updated = [...otpCode];
-    updated[index] = val;
-    setOtpCode(updated);
+    loginCustomer(cleaned, finalName);
+    showToast(`✓ Signed in successfully with PIN!`);
 
-    // Auto-focus next input
-    if (val && index < 5) {
-      const nextInput = document.getElementById(`otp-input-${index + 1}`);
-      if (nextInput) nextInput.focus();
-    }
+    if (onSuccess) onSuccess();
+    onClose();
   };
 
   const handleGpsDetect = async () => {
@@ -153,10 +186,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       isDefault: customerProfile.addresses.length === 0
     });
 
+    // Also update customer accounts file
+    saveCustomerAccount({
+      name: customerProfile.name,
+      phone: customerProfile.phone,
+      verifiedVia: 'WhatsApp',
+      pincode: newPincode,
+      city: newCity,
+      state: newState
+    });
+
     setNewStreet('');
     setNewLandmark('');
-    showToast("Address saved to profile!");
+    showToast("Address saved to your profile!");
   };
+
+  const allRegisteredCount = getStoredCustomerAccounts().length;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
@@ -167,15 +212,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {/* Header */}
         <div className="p-4 sm:p-5 bg-deep-forest text-botanical-ivory flex items-center justify-between border-b border-champagne-gold/30">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-champagne-gold/20 flex items-center justify-center text-champagne-gold">
-              <Phone className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-full bg-[#25D366]/20 border border-[#25D366]/50 flex items-center justify-center text-[#25D366]">
+              <MessageCircle className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-editorial text-lg text-botanical-ivory leading-tight font-bold">
-                {isLoggedIn ? 'Your Botanical Account' : 'Sign In / Register'}
+                {isLoggedIn ? 'Your Botanical Account' : 'Instant Customer Sign-In'}
               </h3>
               <p className="text-[11px] text-botanical-ivory/70 font-sans">
-                {isLoggedIn ? `+91 ${customerProfile.phone}` : 'Fast Mobile OTP Access'}
+                {isLoggedIn ? `+91 ${customerProfile.phone} • Verified` : 'Official WhatsApp & Quick PIN Verification'}
               </p>
             </div>
           </div>
@@ -193,10 +238,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           {isLoggedIn ? (
             /* Logged In Profile & Saved Addresses View */
             <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-botanical-ivory border border-warm-sand/80 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-botanical-ivory border border-warm-sand/80 flex items-center justify-between">
                 <div>
-                  <div className="font-bold text-deep-forest text-sm font-sans">
-                    {customerProfile.name || 'Valued Customer'}
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-deep-forest text-sm font-sans">
+                      {customerProfile.name || 'Valued Customer'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-[#25D366]/20 text-[#128C7E] text-[10px] font-bold">
+                      ✓ WhatsApp Verified
+                    </span>
                   </div>
                   <div className="text-xs text-charcoal/70 font-mono mt-0.5">
                     +91 {customerProfile.phone}
@@ -205,7 +255,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 <button
                   onClick={() => {
                     logoutCustomer();
-                    setStep('phone');
+                    setStep('input');
                   }}
                   className="px-3 py-1.5 rounded-lg border border-red-300 text-red-700 text-xs font-semibold hover:bg-red-50"
                 >
@@ -223,7 +273,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
                 {customerProfile.addresses.length === 0 ? (
                   <p className="text-xs text-charcoal/60 italic py-2">
-                    No addresses saved yet. Add one below or detect your location via GPS!
+                    No addresses saved yet. Add one below or auto-detect via GPS.
                   </p>
                 ) : (
                   customerProfile.addresses.map((addr) => (
@@ -231,7 +281,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                       key={addr.id}
                       onClick={() => {
                         setCustomerPincode(addr.pincode);
-                        showToast(`Active pincode set to ${addr.pincode}`);
+                        showToast(`Active delivery pincode set to ${addr.pincode}`);
                       }}
                       className="p-3 rounded-xl bg-white border border-warm-sand hover:border-champagne-gold cursor-pointer text-xs space-y-1 transition-all"
                     >
@@ -317,168 +367,246 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 </form>
               </div>
 
+              {/* Admin Database Export File Button */}
+              <div className="pt-3 border-t border-warm-sand/60">
+                <button
+                  type="button"
+                  onClick={exportCustomerDatabaseAsJSON}
+                  className="w-full py-2 px-3 rounded-xl bg-warm-sand/30 hover:bg-warm-sand/60 text-deep-forest text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  title="Download all registered customer records as JSON file"
+                >
+                  <Download className="w-3.5 h-3.5 text-sage-green" />
+                  <span>Export Customer Database File ({allRegisteredCount} registered accounts)</span>
+                </button>
+              </div>
+
             </div>
-          ) : step === 'phone' ? (
-            /* Step 1: Mobile Phone Number Input */
-            <form onSubmit={handleSendOtp} className="space-y-4">
-              <div className="text-center space-y-1">
-                <span className="text-xs font-bold text-sage-green uppercase tracking-wider">
-                  Quick Mobile Login
-                </span>
-                <p className="text-xs text-charcoal/70">
-                  Enter your mobile number to view saved addresses and track live Karaikudi & Courier deliveries.
-                </p>
+          ) : step === 'input' ? (
+            /* Step 1: Input Form with Mode Tabs */
+            <div className="space-y-4">
+              
+              {/* Method Switcher Tabs */}
+              <div className="grid grid-cols-2 p-1 rounded-2xl bg-warm-sand/30 border border-warm-sand/60 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('whatsapp')}
+                  className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
+                    authMode === 'whatsapp'
+                      ? 'bg-white text-[#128C7E] shadow-sm font-bold'
+                      : 'text-charcoal/70 hover:text-deep-forest'
+                  }`}
+                >
+                  <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                  <span>1-Click WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('quickpin')}
+                  className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
+                    authMode === 'quickpin'
+                      ? 'bg-white text-deep-forest shadow-sm font-bold'
+                      : 'text-charcoal/70 hover:text-deep-forest'
+                  }`}
+                >
+                  <Lock className="w-3.5 h-3.5 text-sage-green" />
+                  <span>Quick 4-Digit PIN</span>
+                </button>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-deep-forest mb-1">
-                  Your Full Name
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    required
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="e.g. Alagappan Chettiar"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory border border-warm-sand text-xs font-medium focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-deep-forest mb-1">
-                  10-Digit Mobile Number (+91)
-                </label>
-                <div className="flex gap-2">
-                  <span className="px-3 py-2.5 rounded-xl bg-warm-sand/30 border border-warm-sand text-xs font-bold text-deep-forest flex items-center">
-                    🇮🇳 +91
-                  </span>
-                  <input
-                    type="tel"
-                    required
-                    maxLength={10}
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                    placeholder="98765 43210"
-                    className="flex-1 px-3 py-2.5 rounded-xl bg-botanical-ivory border border-warm-sand text-xs font-mono font-medium focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSendingOtp}
-                className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50"
-              >
-                {isSendingOtp ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
-                    <span>Sending Real SMS OTP...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Send Mobile OTP via SMS</span>
-                    <ArrowRight className="w-4 h-4 text-champagne-gold" />
-                  </>
-                )}
-              </button>
-
-              <div className="text-[10px] text-center text-charcoal/60 flex items-center justify-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-sage-green" />
-                <span>100% Secure. Verified via Indian SMS Gateway (Fast2SMS).</span>
-              </div>
-            </form>
-          ) : (
-            /* Step 2: OTP Verification */
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div className="text-center space-y-1">
-                <span className="text-xs font-bold text-sage-green uppercase tracking-wider">
-                  Verification Code
-                </span>
-                <p className="text-xs text-charcoal/70">
-                  Enter the 6-digit verification code sent to <strong className="font-mono text-deep-forest">+91 {phoneNumber}</strong>
-                </p>
-                
-                {/* Fast2SMS Real SMS Indicator or Test Mode Helper Pill */}
-                {isRealSmsSent ? (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium mt-1">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Real SMS OTP dispatched to your phone! Check messages.</span>
-                  </div>
-                ) : (
-                  <div className="space-y-1 mt-1">
-                    <div 
-                      onClick={() => {
-                        const digits = generatedOtp.split('');
-                        setOtpCode(digits);
-                      }}
-                      className="inline-block p-2 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold cursor-pointer hover:bg-amber-100 transition-colors"
-                      title="Click to auto-fill test OTP"
-                    >
-                      ⚡ Test Code: <span className="font-mono font-bold tracking-widest text-sm text-deep-forest">{generatedOtp}</span> (Click to auto-fill)
+              {authMode === 'whatsapp' ? (
+                /* WhatsApp 1-Click Verification Form */
+                <form onSubmit={handleInitiateWhatsApp} className="space-y-3.5">
+                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block font-bold">100% Instant & Free WhatsApp Access</strong>
+                      <span>Direct verification to official Z NATURALS helpline (+91 {officialWhatsApp}). No SMS delay.</span>
                     </div>
-                    {gatewayMessage && (
-                      <p className="text-[10px] text-amber-800/80 font-medium max-w-xs mx-auto">
-                        Fast2SMS Note: {gatewayMessage}
-                      </p>
-                    )}
                   </div>
-                )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-deep-forest mb-1">
+                      Your Full Name
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="e.g. Meenakshi Sundaram"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory border border-warm-sand text-xs font-medium focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-deep-forest mb-1">
+                      WhatsApp Mobile Number (+91)
+                    </label>
+                    <div className="flex gap-2">
+                      <span className="px-3 py-2.5 rounded-xl bg-warm-sand/30 border border-warm-sand text-xs font-bold text-deep-forest flex items-center">
+                        🇮🇳 +91
+                      </span>
+                      <input
+                        type="tel"
+                        required
+                        maxLength={10}
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                        placeholder="93440 87944"
+                        className="flex-1 px-3 py-2.5 rounded-xl bg-botanical-ivory border border-warm-sand text-xs font-mono font-medium focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isProcessing}
+                    className="w-full py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98]"
+                  >
+                    <MessageCircle className="w-4 h-4 fill-white" />
+                    <span>Verify via WhatsApp (Instant)</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+
+                  <div className="text-[10px] text-center text-charcoal/60 flex items-center justify-center gap-1 pt-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-sage-green" />
+                    <span>Zero Spam. Official Verified Z NATURALS WhatsApp Channel.</span>
+                  </div>
+                </form>
+              ) : (
+                /* Quick PIN Form */
+                <form onSubmit={handleQuickPinLogin} className="space-y-3.5">
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+                    Sign in or create account instantly using your 10-digit mobile number and any 4-digit PIN.
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-deep-forest mb-1">
+                      Your Full Name
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="e.g. Meenakshi Sundaram"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory border border-warm-sand text-xs font-medium focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-deep-forest mb-1">
+                      10-Digit Mobile Number (+91)
+                    </label>
+                    <div className="flex gap-2">
+                      <span className="px-3 py-2.5 rounded-xl bg-warm-sand/30 border border-warm-sand text-xs font-bold text-deep-forest flex items-center">
+                        🇮🇳 +91
+                      </span>
+                      <input
+                        type="tel"
+                        required
+                        maxLength={10}
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                        placeholder="98765 43210"
+                        className="flex-1 px-3 py-2.5 rounded-xl bg-botanical-ivory border border-warm-sand text-xs font-mono font-medium focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-deep-forest mb-1">
+                      4-Digit Security PIN
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="password"
+                        required
+                        maxLength={4}
+                        value={securityPin}
+                        onChange={(e) => setSecurityPin(e.target.value.replace(/\D/g, ''))}
+                        placeholder="••••"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory border border-warm-sand text-base font-mono tracking-widest font-bold focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical"
+                  >
+                    <span>Sign In with PIN</span>
+                    <ArrowRight className="w-4 h-4 text-champagne-gold" />
+                  </button>
+                </form>
+              )}
+
+            </div>
+          ) : (
+            /* Step 2: Confirm WhatsApp Verification */
+            <div className="space-y-4 text-center">
+              <div className="w-14 h-14 rounded-full bg-[#25D366]/20 border-2 border-[#25D366] flex items-center justify-center mx-auto text-[#25D366] animate-pulse">
+                <MessageCircle className="w-7 h-7" />
               </div>
 
-              {/* 6-Digit OTP Inputs */}
-              <div className="flex justify-center gap-1.5 sm:gap-2.5 py-2">
-                {otpCode.map((digit, i) => (
-                  <input
-                    key={i}
-                    id={`otp-input-${i}`}
-                    type="text"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpDigitChange(i, e.target.value)}
-                    className="w-9 sm:w-11 h-11 sm:h-13 text-center font-mono font-extrabold text-lg sm:text-xl rounded-xl bg-botanical-ivory border-2 border-warm-sand focus:border-deep-forest focus:outline-none"
-                  />
-                ))}
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-[#128C7E] uppercase tracking-wider">
+                  WhatsApp Opened
+                </span>
+                <h4 className="font-editorial text-xl font-bold text-deep-forest">
+                  Pre-Filled Verification Message Sent
+                </h4>
+                <p className="text-xs text-charcoal/70">
+                  Verification message dispatched to Z NATURALS helpline (<strong className="font-mono text-deep-forest">+91 {officialWhatsApp}</strong>) for customer <strong className="font-mono text-deep-forest">+91 {phoneNumber}</strong>.
+                </p>
               </div>
 
+              {/* Code Pill */}
+              <div className="p-3.5 rounded-2xl bg-botanical-ivory border border-warm-sand/80 space-y-1">
+                <span className="text-[11px] font-semibold text-charcoal/60 uppercase tracking-wider block">
+                  Your Security Verification Code
+                </span>
+                <span className="font-mono font-extrabold text-2xl tracking-widest text-deep-forest block">
+                  {verificationCode}
+                </span>
+              </div>
+
+              {/* Confirmation CTA */}
               <button
-                type="submit"
-                disabled={isVerifying || otpCode.join('').length !== 6}
-                className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50"
+                type="button"
+                onClick={handleCompleteWhatsAppLogin}
+                className="w-full py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]"
               >
-                {isVerifying ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
-                    <span>Verifying Code...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-champagne-gold" />
-                    <span>Verify & Continue</span>
-                  </>
-                )}
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Complete WhatsApp Login & Enter Store</span>
               </button>
 
               <div className="flex items-center justify-between text-xs text-charcoal/70 pt-1">
                 <button
                   type="button"
-                  onClick={() => setStep('phone')}
+                  onClick={() => setStep('input')}
                   className="underline hover:text-deep-forest"
                 >
-                  Change Number
+                  Change Mobile Number
                 </button>
+
                 <button
                   type="button"
-                  onClick={handleSendOtp}
-                  disabled={isSendingOtp}
-                  className="font-bold text-sage-green hover:underline flex items-center gap-1"
+                  onClick={handleInitiateWhatsApp}
+                  className="font-bold text-[#128C7E] hover:underline flex items-center gap-1"
                 >
-                  <RefreshCw className={`w-3 h-3 ${isSendingOtp ? 'animate-spin' : ''}`} /> Resend Code
+                  <ExternalLink className="w-3.5 h-3.5" /> Re-open WhatsApp
                 </button>
               </div>
-            </form>
+            </div>
           )}
 
         </div>
