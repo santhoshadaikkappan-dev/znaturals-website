@@ -16,11 +16,13 @@ import {
   PackageCheck,
   Scale,
   Sparkles,
-  UserCheck
+  UserCheck,
+  RefreshCw
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { isKaraikudiPincode } from '../config/storeConfig';
 import { requestBrowserGeolocation } from '../utils/geolocation';
+import { launchRazorpayCheckout } from '../config/razorpay';
 import { Order, PaymentMethod } from '../types';
 
 export const CheckoutModal: React.FC = () => {
@@ -53,12 +55,13 @@ export const CheckoutModal: React.FC = () => {
   const [state, setState] = useState(customerState || 'Tamil Nadu');
   const [pincode, setPincode] = useState(customerPincode || '630001');
   const [deliverySlot, setDeliverySlot] = useState<string>('Daily: 8:00 AM – 12:00 PM');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Free Cash / UPI at Delivery (Karaikudi Exclusive)');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Razorpay Online (UPI / GPay / PhonePe / Cards)');
   const [upiUtr, setUpiUtr] = useState('');
   const [notes, setNotes] = useState('');
 
   // GPS State
   const [isLocating, setIsLocating] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Completed Order State for Receipt View
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
@@ -140,7 +143,55 @@ export const CheckoutModal: React.FC = () => {
       showToast("Please enter a valid 10-digit mobile number");
       return;
     }
+    if (!address.trim()) {
+      showToast("Please enter your complete delivery street address");
+      return;
+    }
 
+    // 1. Handling Razorpay Automated Gateway Checkout
+    if (paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)') {
+      setIsProcessingPayment(true);
+      launchRazorpayCheckout({
+        amount: grandTotal,
+        customer: {
+          name: name.trim(),
+          email: customerProfile.email || undefined,
+          contact: phone.trim(),
+          address: `${address.trim()}${landmark ? ', Near ' + landmark.trim() : ''}, ${city}, ${state} - ${pincode}`
+        },
+        description: `Z NATURALS Order (${cart.length} Items)`,
+        onSuccess: (paymentId: string) => {
+          setIsProcessingPayment(false);
+          const order = placeCustomerOrder({
+            customerName: name,
+            phone,
+            alternatePhone,
+            address,
+            landmark,
+            city,
+            state,
+            pincode,
+            deliverySlot: isKaraikudi ? deliverySlot : 'Express Courier (2–4 Days)',
+            notes,
+            paymentMethod: 'Razorpay Online (UPI / GPay / PhonePe / Cards)',
+            upiUtr: paymentId
+          });
+          setCompletedOrder(order);
+          showToast(`✓ Payment Successful! Order #${order.id} Confirmed.`);
+        },
+        onDismiss: () => {
+          setIsProcessingPayment(false);
+          showToast("Payment window closed. Your cart is preserved.");
+        },
+        onError: (errMsg: string) => {
+          setIsProcessingPayment(false);
+          showToast(`Payment error: ${errMsg}`);
+        }
+      });
+      return;
+    }
+
+    // 2. Handling Direct UPI (Zero Fee with manual UTR)
     if (paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)') {
       if (!upiUtr.trim() || upiUtr.trim().length < 6) {
         showToast("Please enter the 12-digit UPI UTR / Transaction Ref ID from your payment app");
@@ -148,6 +199,7 @@ export const CheckoutModal: React.FC = () => {
       }
     }
 
+    // 3. Handling Doorstep Cash / COD Delivery
     const order = placeCustomerOrder({
       customerName: name,
       phone,
@@ -565,7 +617,43 @@ export const CheckoutModal: React.FC = () => {
                 </label>
 
                 <div className="grid grid-cols-1 gap-3">
-                  {/* Option 1: Cash / Doorstep UPI */}
+                  {/* Option 1: Razorpay Automated Gateway (GPay, PhonePe, Paytm, Cards) */}
+                  <label className={`p-3.5 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
+                    paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'
+                      ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest shadow-xs'
+                      : 'border-warm-sand bg-white text-charcoal/80 hover:border-champagne-gold'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Razorpay Online (UPI / GPay / PhonePe / Cards)"
+                      checked={paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'}
+                      onChange={() => setPaymentMethod('Razorpay Online (UPI / GPay / PhonePe / Cards)')}
+                      className="mt-1 text-deep-forest"
+                    />
+                    <div className="text-xs space-y-1 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm block text-deep-forest flex items-center gap-1.5">
+                          <span>Pay Online via Razorpay</span>
+                          <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                            ⚡ Instant Auto-Confirm
+                          </span>
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-charcoal/70 leading-relaxed">
+                        Automatic 2-second order confirmation. Pay with Google Pay, PhonePe, Paytm, Supermoney, UPI QR, ATM Cards & NetBanking.
+                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[10px] font-bold text-deep-forest/80">
+                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">PhonePe</span>
+                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Google Pay</span>
+                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Paytm</span>
+                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Supermoney</span>
+                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Debit / Credit Cards</span>
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Option 2: Cash / Doorstep UPI */}
                   <label className={`p-3.5 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
                     paymentMethod === 'Free Cash / UPI at Delivery (Karaikudi Exclusive)' || paymentMethod === 'Cash on Delivery (COD)'
                       ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest shadow-xs'
@@ -591,7 +679,7 @@ export const CheckoutModal: React.FC = () => {
                     </div>
                   </label>
 
-                  {/* Option 2: Pay Online Now via Instant UPI */}
+                  {/* Option 3: Direct UPI QR Portal (Zero Fee) */}
                   <label className={`p-3.5 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
                     paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)'
                       ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest shadow-xs'
@@ -606,12 +694,11 @@ export const CheckoutModal: React.FC = () => {
                       className="mt-1 text-deep-forest"
                     />
                     <div className="text-xs space-y-0.5">
-                      <span className="font-bold text-sm block flex items-center gap-1.5">
-                        <span>Pay Online Now via Instant UPI (Zero Fee)</span>
-                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Recommended</span>
+                      <span className="font-bold text-sm block">
+                        Direct UPI QR Transfer (Manual 12-Digit UTR)
                       </span>
                       <p className="text-[11px] text-charcoal/70 leading-relaxed">
-                        Instant payment via GPay, PhonePe, Paytm, or BHIM. Zero extra transaction fee!
+                        Direct merchant UPI transfer with 0% gateway fee. Requires entering the 12-digit UTR from your UPI app.
                       </p>
                     </div>
                   </label>
@@ -710,15 +797,26 @@ export const CheckoutModal: React.FC = () => {
               {/* Submit Order Button */}
               <button
                 type="submit"
-                disabled={cart.length === 0}
-                className="w-full py-4 px-6 rounded-xl bg-deep-forest hover:bg-deep-forest-dark text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-botanical active:scale-[0.98]"
+                disabled={cart.length === 0 || isProcessingPayment}
+                className="w-full py-4 px-6 rounded-xl bg-deep-forest hover:bg-deep-forest-dark text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-botanical active:scale-[0.98] disabled:opacity-50"
               >
-                <span>
-                  {paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)'
-                    ? `Confirm Order with UPI Payment • ₹${grandTotal}`
-                    : `Place Order with Doorstep Delivery • ₹${grandTotal}`}
-                </span>
-                <ArrowRight className="w-4 h-4 text-champagne-gold" />
+                {isProcessingPayment ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
+                    <span>Connecting to Razorpay Secure Portal...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>
+                      {paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'
+                        ? `Pay ₹${grandTotal} with Razorpay (Instant UPI / Cards)`
+                        : paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)'
+                        ? `Confirm Order with UPI Payment • ₹${grandTotal}`
+                        : `Place Order with Doorstep Delivery • ₹${grandTotal}`}
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-champagne-gold" />
+                  </>
+                )}
               </button>
 
             </form>

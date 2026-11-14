@@ -61,6 +61,7 @@ export interface CartItem {
 export type DeliveryZone = 'Zone A (Karaikudi Local)' | 'Zone B (Rest of India Courier)';
 
 export type PaymentMethod = 
+  | 'Razorpay Online (UPI / GPay / PhonePe / Cards)'
   | 'Free Cash / UPI at Delivery (Karaikudi Exclusive)'
   | 'Pay Online Now via Instant UPI (Zero Fee)'
   | 'Cash on Delivery (COD)' 
