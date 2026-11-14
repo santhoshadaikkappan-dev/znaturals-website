@@ -62,6 +62,7 @@ export type DeliveryZone = 'Zone A (Karaikudi Local)' | 'Zone B (Rest of India C
 
 export type PaymentMethod = 
   | 'Cash on Delivery (COD)' 
+  | 'Online UPI (GPay / PhonePe / Paytm / QR)'
   | 'Google Pay' 
   | 'PhonePe' 
   | 'Paytm' 
@@ -86,6 +87,8 @@ export interface Order {
   customerName: string;
   phone: string;
   alternatePhone?: string;
+  customerEmail?: string;
+  isGuest?: boolean;
   address: string;
   landmark?: string;
   city: string;
@@ -103,6 +106,7 @@ export interface Order {
   status: OrderStatus;
   paymentMethod: PaymentMethod;
   paymentStatus: 'Pending (COD)' | 'Paid (Online)';
+  upiTransactionId?: string;
   assignedRider?: string;
 }
 
@@ -117,8 +121,10 @@ export interface CustomerAddress {
 }
 
 export interface CustomerProfile {
+  id?: string;
   name: string;
   phone: string;
+  email?: string;
   isLoggedIn: boolean;
   addresses: CustomerAddress[];
 }
