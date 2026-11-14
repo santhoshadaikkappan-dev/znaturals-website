@@ -1,4 +1,11 @@
-export type ProductCategory = 'Skincare' | 'Haircare' | 'Body Care';
+export type ProductCategory = 
+  | 'Hair' 
+  | 'Face' 
+  | 'Body' 
+  | 'Milk' 
+  | 'Combo' 
+  | 'Gift Sets' 
+  | 'Bestsellers';
 
 export type SkinOrHairConcern = 
   | 'Acne & Blemishes'
@@ -29,6 +36,7 @@ export interface Product {
   rating: number;
   reviewCount: number;
   badge?: 'Bestseller' | 'New Launch' | 'Pure Botanical' | 'Customer Favorite';
+  isBestseller?: boolean;
   image: string;
   secondaryImage?: string;
   shortDescription: string;

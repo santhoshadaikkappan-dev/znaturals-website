@@ -48,28 +48,26 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   }[size];
 
   const brandTextClasses = {
-    sm: 'text-xl tracking-wider',
-    md: 'text-2xl md:text-3xl tracking-widest',
-    lg: 'text-3xl md:text-4xl tracking-widest',
-    xl: 'text-4xl md:text-5xl tracking-widest',
+    sm: 'text-lg sm:text-xl tracking-wider',
+    md: 'text-lg sm:text-2xl md:text-3xl tracking-wider sm:tracking-widest',
+    lg: 'text-2xl sm:text-3xl md:text-4xl tracking-wider sm:tracking-widest',
+    xl: 'text-3xl sm:text-4xl md:text-5xl tracking-widest',
   }[size];
 
   const subTextClasses = {
-    sm: 'text-[7px] tracking-[0.2em]',
-    md: 'text-[9px] md:text-[10px] tracking-[0.25em]',
-    lg: 'text-[11px] md:text-[12px] tracking-[0.3em]',
-    xl: 'text-[13px] md:text-[14px] tracking-[0.35em]',
+    sm: 'text-[7px] tracking-[0.15em]',
+    md: 'text-[8px] sm:text-[9px] md:text-[10px] tracking-[0.18em] sm:tracking-[0.25em]',
+    lg: 'text-[10px] sm:text-[11px] md:text-[12px] tracking-[0.2em] sm:tracking-[0.3em]',
+    xl: 'text-[12px] sm:text-[13px] md:text-[14px] tracking-[0.25em] sm:tracking-[0.35em]',
   }[size];
 
   // Stylized "Z" with botanical leaf SVG
   const MonogramSvg = (
     <svg 
-      width={iconDimensions.width} 
-      height={iconDimensions.height} 
       viewBox="0 0 100 100" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
-      className="flex-shrink-0 transition-transform duration-300 hover:scale-105"
+      className="w-7 h-7 sm:w-9 sm:h-9 md:w-11 md:h-11 flex-shrink-0 transition-transform duration-300 hover:scale-105"
     >
       <defs>
         <linearGradient id={`goldGrad-${size}-${theme}`} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -191,7 +189,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   // Default: Horizontal Luxury Logo
   return (
     <div 
-      className={`inline-flex items-center gap-3 cursor-pointer select-none group ${className}`}
+      className={`inline-flex items-center gap-2 sm:gap-3 cursor-pointer select-none group ${className}`}
       onClick={onClick}
     >
       {MonogramSvg}
@@ -203,18 +201,19 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           >
             {BRAND_CONFIG.name}
           </span>
-          <span className="text-[10px] -mt-1 font-serif font-normal" style={{ color: goldColor }}>®</span>
+          <span className="text-[9px] sm:text-[10px] -mt-1 font-serif font-normal" style={{ color: goldColor }}>®</span>
         </div>
 
-        <div className="flex items-center gap-2 mt-1">
-          <span className="h-[1px] w-3 bg-champagne-gold/40" />
+        <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
+          <span className="h-[1px] w-2 sm:w-3 bg-champagne-gold/40" />
           <span 
             className={`font-sans font-medium uppercase ${subTextClasses}`}
             style={{ color: subtitleColor }}
           >
-            {BRAND_CONFIG.subtitle}
+            <span className="sm:hidden">Botanical Care</span>
+            <span className="hidden sm:inline">{BRAND_CONFIG.subtitle}</span>
           </span>
-          <span className="h-[1px] w-3 bg-champagne-gold/40 hidden sm:inline-block" />
+          <span className="h-[1px] w-2 sm:w-3 bg-champagne-gold/40 hidden sm:inline-block" />
         </div>
 
         {showTagline && (

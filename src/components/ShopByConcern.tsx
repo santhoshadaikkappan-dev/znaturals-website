@@ -1,20 +1,11 @@
 import React from 'react';
-import { CONCERN_LIST } from '../data/products';
-import { Sparkles, ShieldCheck, Sun, Droplets, Flame } from 'lucide-react';
+import { CONCERN_LIST, PRODUCTS } from '../data/products';
 import { SkinOrHairConcern } from '../types';
 
 interface ShopByConcernProps {
   selectedConcern: string | null;
   onSelectConcern: (concern: SkinOrHairConcern | null) => void;
 }
-
-const ICON_MAP = {
-  Sparkles: Sparkles,
-  ShieldCheck: ShieldCheck,
-  Sun: Sun,
-  Droplets: Droplets,
-  Flame: Flame,
-};
 
 export const ShopByConcern: React.FC<ShopByConcernProps> = ({
   selectedConcern,
@@ -38,10 +29,10 @@ export const ShopByConcern: React.FC<ShopByConcernProps> = ({
         </div>
 
         {/* Concern Circular Cards Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
           {CONCERN_LIST.map((concern) => {
-            const Icon = ICON_MAP[concern.icon as keyof typeof ICON_MAP] || Sparkles;
             const isSelected = selectedConcern === concern.id;
+            const botanicalCount = PRODUCTS.filter((p) => p.concerns.includes(concern.id)).length;
 
             return (
               <button
@@ -51,7 +42,7 @@ export const ShopByConcern: React.FC<ShopByConcernProps> = ({
                   const el = document.getElementById('bestsellers');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className={`relative flex flex-col items-center p-5 rounded-2xl transition-all text-center group border ${
+                className={`relative flex flex-col items-center p-4 rounded-2xl transition-all text-center group border ${
                   isSelected
                     ? 'bg-deep-forest text-botanical-ivory border-deep-forest shadow-botanical scale-105'
                     : 'bg-soft-white text-deep-forest border-warm-sand/60 hover:border-champagne-gold hover:shadow-botanical'
@@ -59,36 +50,36 @@ export const ShopByConcern: React.FC<ShopByConcernProps> = ({
               >
                 {/* Visual Rounded Icon Circle */}
                 <div 
-                  className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-110 ${
+                  className={`w-14 h-14 rounded-full flex items-center justify-center mb-2.5 text-2xl transition-transform group-hover:scale-110 ${
                     isSelected 
                       ? 'bg-botanical-ivory/20 text-champagne-gold' 
                       : 'bg-botanical-ivory text-deep-forest border border-warm-sand'
                   }`}
                 >
-                  <Icon className="w-7 h-7" />
+                  <span>{concern.icon}</span>
                 </div>
 
                 {/* Concern Title */}
-                <h3 className={`font-serif font-bold text-base mb-1 ${
+                <h3 className={`font-serif font-bold text-sm mb-1 line-clamp-1 ${
                   isSelected ? 'text-botanical-ivory' : 'text-deep-forest'
                 }`}>
                   {concern.name}
                 </h3>
 
                 {/* Subtitle / Tagline */}
-                <p className={`font-sans text-xs ${
+                <p className={`font-sans text-[11px] line-clamp-2 ${
                   isSelected ? 'text-botanical-ivory/80' : 'text-charcoal/60'
                 }`}>
                   {concern.tagline}
                 </p>
 
                 {/* Count Badge */}
-                <span className={`mt-3 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                <span className={`mt-2 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                   isSelected 
                     ? 'bg-champagne-gold/30 text-champagne-gold' 
                     : 'bg-warm-sand/30 text-sage-green'
                 }`}>
-                  {concern.count} Botanicals
+                  {botanicalCount} Botanicals
                 </span>
               </button>
             );

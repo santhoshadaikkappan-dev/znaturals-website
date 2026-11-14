@@ -2,13 +2,14 @@ import React from 'react';
 import { Sparkles, ArrowRight, Truck, Leaf, Shield, Award } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { BRAND_CONFIG } from '../config/storeConfig';
+import { PRODUCTS } from '../data/products';
 
 interface HeroSectionProps {
   onExploreClick: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
-  const { setIsAiAdvisorOpen } = useStore();
+  const { setIsAiAdvisorOpen, setActiveProductModal } = useStore();
 
   return (
     <section className="relative overflow-hidden bg-botanical-ivory pt-8 pb-16 lg:pt-14 lg:pb-24 border-b border-warm-sand/50">
@@ -95,11 +96,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
           <div className="lg:col-span-5 relative">
             <div className="relative mx-auto max-w-md lg:max-w-none">
               
-              {/* Main Visual Card */}
-              <div className="relative rounded-3xl overflow-hidden shadow-botanical-lg border-2 border-warm-sand/60 bg-soft-white aspect-[4/5] group">
+              {/* Main Visual Card with Nano Banana Pro Generated Photoshoot */}
+              <div 
+                onClick={() => {
+                  const serum = PRODUCTS.find(p => p.id === 'zn-face-01');
+                  if (serum) setActiveProductModal(serum);
+                }}
+                className="relative rounded-3xl overflow-hidden shadow-botanical-lg border-2 border-warm-sand/60 bg-soft-white aspect-[4/5] group cursor-pointer"
+              >
                 <img 
-                  src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=1000&q=85" 
-                  alt="Z Naturals Botanical Beauty Products" 
+                  src="./products/kumkumadi_face_serum.jpg" 
+                  alt="Z Naturals Kumkumadi Face Serum" 
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
 
@@ -111,18 +118,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <span className="text-[10px] font-bold text-champagne-gold uppercase tracking-wider">
-                        Featured Botanical
+                        ★ Bestselling Botanical
                       </span>
                       <h3 className="font-serif font-bold text-lg text-deep-forest leading-snug">
-                        Botanical Glow Face Serum
+                        Z Naturals Kumkumadi Face Serum
                       </h3>
                       <p className="text-xs text-charcoal/70 mt-0.5">
-                        Green Tea • Cold-Pressed Aloe • Saffron Infusion
+                        Kashmiri Saffron • Sandalwood • 26 Royal Herbs • 20ml
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <span className="text-sm font-bold text-deep-forest">₹649</span>
-                      <span className="text-[11px] text-charcoal/50 line-through block">₹799</span>
+                      <span className="text-sm font-bold text-deep-forest">₹449</span>
+                      <span className="text-[11px] text-charcoal/50 line-through block">₹599</span>
                     </div>
                   </div>
                 </div>

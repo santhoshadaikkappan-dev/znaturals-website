@@ -21,61 +21,64 @@ interface CategoryCard {
 
 const CATEGORY_ITEMS: CategoryCard[] = [
   {
-    id: 'serums',
-    name: 'Serums',
-    buttonLabel: 'Serums >',
-    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=360&q=80',
-    bgBlobColor: 'bg-[#D2E2C8]', // Vilvah organic green blob
-    categoryFilter: 'Skincare',
+    id: 'hair',
+    name: 'Herbal Haircare',
+    buttonLabel: 'Hair >',
+    image: './products/advanced_herbs_hair_oil.jpg',
+    bgBlobColor: 'bg-[#D2E2C8]',
+    categoryFilter: 'Hair',
+    concernFilter: 'Hair Fall'
+  },
+  {
+    id: 'face',
+    name: 'Botanical Skincare',
+    buttonLabel: 'Face >',
+    image: './products/kumkumadi_face_serum.jpg',
+    bgBlobColor: 'bg-[#EBDDC8]',
+    categoryFilter: 'Face',
     concernFilter: 'Daily Glow'
   },
   {
-    id: 'eye-care',
-    name: 'Eye & Face Care',
-    buttonLabel: 'Eye Care >',
-    image: 'https://images.unsplash.com/photo-1608248597359-28192a549646?auto=format&fit=crop&w=360&q=80',
-    bgBlobColor: 'bg-[#CCE0C2]',
-    categoryFilter: 'Skincare'
-  },
-  {
-    id: 'sunscreen',
-    name: 'Sunscreen & Oils',
-    buttonLabel: 'Sunscreen >',
-    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=360&q=80',
-    bgBlobColor: 'bg-[#D7E6CC]',
-    categoryFilter: 'Haircare'
-  },
-  {
-    id: 'face-wash',
-    name: 'Face Wash & Ubtan',
-    buttonLabel: 'Face Wash >',
-    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=360&q=80',
+    id: 'body',
+    name: 'Herbal Body Care',
+    buttonLabel: 'Body >',
+    image: './products/kuppaimeni_soap.jpg',
     bgBlobColor: 'bg-[#D0E2C6]',
-    categoryFilter: 'Body Care',
-    concernFilter: 'Acne & Blemishes'
+    categoryFilter: 'Body'
   },
   {
-    id: 'shampoos',
-    name: 'Herbal Shampoos',
-    buttonLabel: 'Shampoos >',
-    image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?auto=format&fit=crop&w=360&q=80',
-    bgBlobColor: 'bg-[#CBE0C0]',
-    categoryFilter: 'Haircare'
+    id: 'milk',
+    name: 'Pure Goat Milk Range',
+    buttonLabel: 'Milk Range >',
+    image: './products/goat_milk_cream.jpg',
+    bgBlobColor: 'bg-[#F2EFE8]',
+    categoryFilter: 'Milk',
+    concernFilter: 'Dry Skin'
   },
   {
-    id: 'combos',
-    name: 'Combos & Gift Kits',
+    id: 'combo',
+    name: 'Curated Combos',
     buttonLabel: 'Combos >',
-    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=360&q=80',
-    bgBlobColor: 'bg-[#D5E6CD]'
+    image: './products/bridal_glow_combo.jpg',
+    bgBlobColor: 'bg-[#EAE2D5]',
+    categoryFilter: 'Combo'
   },
   {
-    id: 'lip-care',
-    name: 'Lip & Body Care',
-    buttonLabel: 'Lip Care >',
-    image: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=360&q=80',
-    bgBlobColor: 'bg-[#CDDFC4]',
-    categoryFilter: 'Body Care'
+    id: 'gift-sets',
+    name: 'Luxury Gift Sets',
+    buttonLabel: 'Gift Sets >',
+    badge: 'New',
+    image: './products/chettinad_gift_box.jpg',
+    bgBlobColor: 'bg-[#E3DCBA]',
+    categoryFilter: 'Gift Sets'
+  },
+  {
+    id: 'bestsellers',
+    name: 'All Bestsellers',
+    buttonLabel: 'Bestsellers >',
+    image: './products/botanical_sunscreen.jpg',
+    bgBlobColor: 'bg-[#DFE7D6]',
+    categoryFilter: 'Bestsellers'
   }
 ];
 
@@ -121,6 +124,12 @@ export const VilvahCategoryStrip: React.FC<VilvahCategoryStripProps> = ({
                 {/* Organic Circular Shape with Botanical Cutout */}
                 <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center">
                   
+                  {item.badge && (
+                    <span className="absolute -top-1 right-1 bg-[#A01C1C] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tight shadow-sm z-10 animate-bounce-subtle">
+                      {item.badge}
+                    </span>
+                  )}
+
                   {/* Organic Soft Green Blob (Matches Vilvah Screenshot) */}
                   <div 
                     className={`absolute inset-1 rounded-[42%_58%_70%_30%/45%_45%_55%_55%] transition-all duration-500 ${item.bgBlobColor} group-hover:scale-105 group-hover:rotate-6 ${

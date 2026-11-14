@@ -15,20 +15,20 @@ export const AIAdvisorHomepageSection: React.FC = () => {
     if (selectedConcern.includes('Hair')) {
       return {
         title: 'Follicle Regeneration & Scalp Harmony Ritual',
-        description: 'Chettinad Amla & 18 Slow-Cooked Botanicals stimulate dormant hair bulbs while pure Bhringraj relieves dandruff flakes.',
-        products: PRODUCTS.filter((p) => p.category === 'Haircare'),
+        description: 'Chettinad Amla & 18 Slow-Cooked Botanicals stimulate dormant hair bulbs while pure Rosemary Herbal Shampoo strengthens strands.',
+        products: PRODUCTS.filter((p) => p.category === 'Hair').slice(0, 2),
       };
     } else if (selectedConcern.includes('Body')) {
       return {
-        title: 'Chettinad Nalangu Herbal Body Polish Ritual',
-        description: 'Wild Kasthuri Turmeric and stone-ground rose petals naturally eliminate dull body tan and provide all-day skin hydration.',
-        products: PRODUCTS.filter((p) => p.category === 'Body Care'),
+        title: 'Chettinad Herbal Body Polish Ritual',
+        description: 'Pure Kuppaimeni and Kasturi Manjal cold-pressed herbal soaps eliminate dull body tan and provide all-day skin hydration.',
+        products: PRODUCTS.filter((p) => p.category === 'Body').slice(0, 2),
       };
     } else {
       return {
         title: 'Antioxidant Radiance & Melanin Balance Ritual',
-        description: 'High-potency cold-pressed Green Tea and Kashmiri Saffron work synergistically to fade hyperpigmentation without harsh chemicals.',
-        products: PRODUCTS.filter((p) => p.id === 'zn-001' || p.id === 'zn-003'),
+        description: 'High-potency Kumkumadi Face Serum and Kashmiri Saffron work synergistically to fade hyperpigmentation without harsh chemicals.',
+        products: PRODUCTS.filter((p) => p.id === 'zn-face-01' || p.id === 'zn-face-03'),
       };
     }
   };

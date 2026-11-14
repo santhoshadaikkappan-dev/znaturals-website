@@ -75,17 +75,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-warm-sand/60 transition-all shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           
           {/* Mobile Menu Hamburger */}
-          <div className="flex items-center lg:hidden">
+          <div className="flex items-center lg:hidden flex-shrink-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-deep-forest hover:text-sage-green focus:outline-none"
+              className="p-1.5 -ml-1 text-deep-forest hover:text-sage-green focus:outline-none"
               aria-label="Toggle Menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
           </div>
 
@@ -104,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             
             {/* 1. Bestsellers */}
             <button 
-              onClick={() => scrollToBestsellers(null)}
+              onClick={() => scrollToBestsellers('Bestsellers')}
               className="hover:text-sage-green transition-colors py-2 tracking-wide"
             >
               Bestsellers
@@ -117,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onMouseLeave={() => setHairDropdown(false)}
             >
               <button 
-                onClick={() => scrollToBestsellers('Haircare')}
+                onClick={() => scrollToBestsellers('Hair')}
                 className="flex items-center gap-1 hover:text-sage-green transition-colors py-2 tracking-wide"
               >
                 <span>Hair</span>
@@ -125,25 +125,37 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               {hairDropdown && (
-                <div className="absolute top-full left-0 w-52 bg-white shadow-xl border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 animate-fadeIn">
+                <div className="absolute top-full left-0 w-64 bg-white shadow-xl border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 animate-fadeIn">
                   <button
-                    onClick={() => scrollToBestsellers('Haircare')}
+                    onClick={() => scrollToBestsellers('Hair')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs font-semibold text-deep-forest flex justify-between"
                   >
                     <span>All Haircare</span>
-                    <span className="text-[10px] text-sage-green">View</span>
+                    <span className="text-[10px] text-sage-green">View All</span>
                   </button>
                   <button
-                    onClick={() => scrollToBestsellers('Haircare')}
+                    onClick={() => scrollToBestsellers('Hair')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
                   >
-                    Herbal Hair Oil with 18 Herbs
+                    Advanced Herbs Hair Oil (₹399)
                   </button>
                   <button
-                    onClick={() => scrollToBestsellers('Haircare')}
+                    onClick={() => scrollToBestsellers('Hair')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
                   >
-                    Herbal Shampoo with Bhringraj
+                    Anti-Dandruff Hair Oil (₹399)
+                  </button>
+                  <button
+                    onClick={() => scrollToBestsellers('Hair')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                  >
+                    Shikakai Herbal Shampoo (₹399)
+                  </button>
+                  <button
+                    onClick={() => scrollToBestsellers('Hair')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                  >
+                    Rosemary Herbal Shampoo (₹430)
                   </button>
                 </div>
               )}
@@ -156,7 +168,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onMouseLeave={() => setFaceDropdown(false)}
             >
               <button 
-                onClick={() => scrollToBestsellers('Skincare')}
+                onClick={() => scrollToBestsellers('Face')}
                 className="flex items-center gap-1 hover:text-sage-green transition-colors py-2 tracking-wide"
               >
                 <span>Face</span>
@@ -164,25 +176,43 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               {faceDropdown && (
-                <div className="absolute top-full left-0 w-56 bg-white shadow-xl border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 animate-fadeIn">
+                <div className="absolute top-full left-0 w-64 bg-white shadow-xl border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 animate-fadeIn">
                   <button
-                    onClick={() => scrollToBestsellers('Skincare')}
+                    onClick={() => scrollToBestsellers('Face')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs font-semibold text-deep-forest flex justify-between"
                   >
                     <span>All Face Care</span>
-                    <span className="text-[10px] text-sage-green">View</span>
+                    <span className="text-[10px] text-sage-green">View All</span>
                   </button>
                   <button
-                    onClick={() => scrollToBestsellers('Skincare')}
+                    onClick={() => scrollToBestsellers('Face')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
                   >
-                    Botanical Glow Face Serum
+                    Kumkumadi Face Serum (₹449)
                   </button>
                   <button
-                    onClick={() => scrollToBestsellers('Skincare')}
+                    onClick={() => scrollToBestsellers('Face')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
                   >
-                    Nourishing Saffron Face Cream
+                    Anti-Acne & Pimple Serum (₹449)
+                  </button>
+                  <button
+                    onClick={() => scrollToBestsellers('Face')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                  >
+                    Kumkumadi Face Wash (₹469)
+                  </button>
+                  <button
+                    onClick={() => scrollToBestsellers('Face')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                  >
+                    SPF 50 Botanical Sunscreen (₹410)
+                  </button>
+                  <button
+                    onClick={() => scrollToBestsellers('Face')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                  >
+                    Pure Rose Water Toner (₹190)
                   </button>
                 </div>
               )}
@@ -195,7 +225,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onMouseLeave={() => setBodyDropdown(false)}
             >
               <button 
-                onClick={() => scrollToBestsellers('Body Care')}
+                onClick={() => scrollToBestsellers('Body')}
                 className="flex items-center gap-1 hover:text-sage-green transition-colors py-2 tracking-wide"
               >
                 <span>Body</span>
@@ -203,38 +233,50 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               {bodyDropdown && (
-                <div className="absolute top-full left-0 w-52 bg-white shadow-xl border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 animate-fadeIn">
+                <div className="absolute top-full left-0 w-64 bg-white shadow-xl border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 animate-fadeIn">
                   <button
-                    onClick={() => scrollToBestsellers('Body Care')}
+                    onClick={() => scrollToBestsellers('Body')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs font-semibold text-deep-forest flex justify-between"
                   >
                     <span>All Body Care</span>
-                    <span className="text-[10px] text-sage-green">View</span>
+                    <span className="text-[10px] text-sage-green">View All</span>
                   </button>
                   <button
-                    onClick={() => scrollToBestsellers('Body Care')}
+                    onClick={() => scrollToBestsellers('Body')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
                   >
-                    Sandalwood Botanical Body Lotion
+                    Kuppaimeni Herbal Soap (₹99)
                   </button>
                   <button
-                    onClick={() => scrollToBestsellers('Body Care')}
+                    onClick={() => scrollToBestsellers('Body')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
                   >
-                    Radiant Ubtan Bath Powder
+                    Kumkumadi Glow Soap (₹99)
+                  </button>
+                  <button
+                    onClick={() => scrollToBestsellers('Body')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                  >
+                    Acne & Pimple Clear Soap (₹99)
+                  </button>
+                  <button
+                    onClick={() => scrollToBestsellers('Body')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                  >
+                    Kasturi Manjal Herbal Soap (₹99)
                   </button>
                 </div>
               )}
             </div>
 
-            {/* 5. Milk & Herbal Range with Dropdown */}
+            {/* 5. Milk Range with Dropdown */}
             <div 
               className="relative group"
               onMouseEnter={() => setRangeDropdown(true)}
               onMouseLeave={() => setRangeDropdown(false)}
             >
               <button 
-                onClick={() => scrollToBestsellers(null)}
+                onClick={() => scrollToBestsellers('Milk')}
                 className="flex items-center gap-1 hover:text-sage-green transition-colors py-2 tracking-wide"
               >
                 <span>Milk Range</span>
@@ -242,18 +284,31 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               {rangeDropdown && (
-                <div className="absolute top-full left-0 w-56 bg-white shadow-xl border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 animate-fadeIn">
+                <div className="absolute top-full left-0 w-64 bg-white shadow-xl border border-warm-sand/60 rounded-xl py-2 mt-0 z-50 animate-fadeIn">
                   <button
-                    onClick={() => scrollToBestsellers(null)}
-                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                    onClick={() => scrollToBestsellers('Milk')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs font-semibold text-deep-forest flex justify-between"
                   >
-                    Chettinad Herbal Formulations
+                    <span>All Milk Range</span>
+                    <span className="text-[10px] text-sage-green">View All</span>
                   </button>
                   <button
-                    onClick={() => scrollToBestsellers(null)}
+                    onClick={() => scrollToBestsellers('Milk')}
                     className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
                   >
-                    Cold-Pressed Botanical Butters
+                    Goat Milk Moisturizing Soap (₹130)
+                  </button>
+                  <button
+                    onClick={() => scrollToBestsellers('Milk')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                  >
+                    Goat Milk Active Face Cream (₹680)
+                  </button>
+                  <button
+                    onClick={() => scrollToBestsellers('Milk')}
+                    className="w-full text-left px-4 py-2 hover:bg-botanical-ivory text-xs text-charcoal"
+                  >
+                    Goat Milk Face Serum (₹490)
                   </button>
                 </div>
               )}
@@ -261,7 +316,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* 6. Combos */}
             <button 
-              onClick={() => scrollToBestsellers(null)}
+              onClick={() => scrollToBestsellers('Combo')}
               className="hover:text-sage-green transition-colors py-2 tracking-wide"
             >
               Combos
@@ -273,7 +328,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 New
               </span>
               <button 
-                onClick={() => scrollToBestsellers(null)}
+                onClick={() => scrollToBestsellers('Gift Sets')}
                 className="hover:text-sage-green transition-colors py-2 tracking-wide"
               >
                 Gift Sets
@@ -307,7 +362,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Right Utilities (Image 1 style: Search, Lightning Account, Cart Bag) */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3.5 pr-1 sm:pr-0 flex-shrink-0">
             
             {/* Pincode Pill (Desktop) */}
             <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-botanical-ivory border border-warm-sand text-xs shadow-xs">
@@ -336,7 +391,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onSearchClick}
               aria-label="Search Botanical Products"
-              className="p-2 text-charcoal hover:text-sage-green transition-colors focus:outline-none"
+              className="p-1.5 sm:p-2 text-charcoal hover:text-sage-green transition-colors focus:outline-none"
             >
               <Search className="w-5 h-5 stroke-[1.8]" />
             </button>
@@ -344,7 +399,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* 2. Customer Account Icon with Energy/Lightning Badge (Exact Vilvah Style) */}
             <button
               onClick={() => setIsAuthModalOpen(true)}
-              className="relative p-2 text-charcoal hover:text-sage-green transition-colors focus:outline-none flex items-center justify-center"
+              className="relative p-1.5 sm:p-2 text-charcoal hover:text-sage-green transition-colors focus:outline-none flex items-center justify-center"
               title={customerProfile.isLoggedIn ? `Logged in: ${customerProfile.name}` : "Customer Login / Account"}
             >
               <User className="w-5 h-5 stroke-[1.8]" />
@@ -355,11 +410,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={() => setIsCartOpen(true)}
               aria-label="Shopping Cart"
-              className="relative p-2 text-charcoal hover:text-sage-green transition-colors focus:outline-none"
+              className="relative p-1.5 sm:p-2 text-charcoal hover:text-sage-green transition-colors focus:outline-none"
             >
               <ShoppingBag className="w-5 h-5 stroke-[1.8]" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-deep-forest text-botanical-ivory text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
+                <span className="absolute -top-1 -right-1 bg-deep-forest text-botanical-ivory text-[10px] font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
                   {cartCount}
                 </span>
               )}
@@ -376,34 +431,52 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="lg:hidden border-t border-warm-sand/60 bg-white px-4 pt-3 pb-6 space-y-3 animate-fadeIn">
           <div className="flex flex-col space-y-2 text-sm font-semibold text-deep-forest">
             <button 
-              onClick={() => scrollToBestsellers(null)}
+              onClick={() => scrollToBestsellers('Bestsellers')}
               className="text-left py-2 border-b border-warm-sand/40"
             >
               Bestsellers
             </button>
             <button 
-              onClick={() => scrollToBestsellers('Haircare')}
+              onClick={() => scrollToBestsellers('Hair')}
               className="text-left py-2 border-b border-warm-sand/40"
             >
-              Haircare
+              Hair
             </button>
             <button 
-              onClick={() => scrollToBestsellers('Skincare')}
+              onClick={() => scrollToBestsellers('Face')}
               className="text-left py-2 border-b border-warm-sand/40"
             >
-              Skincare
+              Face
             </button>
             <button 
-              onClick={() => scrollToBestsellers('Body Care')}
+              onClick={() => scrollToBestsellers('Body')}
               className="text-left py-2 border-b border-warm-sand/40"
             >
-              Body Care
+              Body
+            </button>
+            <button 
+              onClick={() => scrollToBestsellers('Milk')}
+              className="text-left py-2 border-b border-warm-sand/40"
+            >
+              Milk Range
+            </button>
+            <button 
+              onClick={() => scrollToBestsellers('Combo')}
+              className="text-left py-2 border-b border-warm-sand/40"
+            >
+              Combos
+            </button>
+            <button 
+              onClick={() => scrollToBestsellers('Gift Sets')}
+              className="text-left py-2 border-b border-warm-sand/40"
+            >
+              Gift Sets
             </button>
             <button 
               onClick={() => scrollToBestsellers(null)}
               className="text-left py-2 border-b border-warm-sand/40"
             >
-              Combos & Gift Sets
+              Shop All
             </button>
             <a 
               href="#brand-story"

@@ -9,28 +9,52 @@ interface ShopByCategoryProps {
 
 const CATEGORIES = [
   {
-    id: 'Skincare' as ProductCategory,
-    title: 'Botanical Skincare',
-    subtitle: 'Nourish & Revitalize',
-    description: 'Cold-pressed facial elixirs, saffron-infused creams & antioxidant serums.',
-    image: 'https://images.unsplash.com/photo-1608248597359-28192a549646?auto=format&fit=crop&w=700&q=80',
-    count: '2 Products'
-  },
-  {
-    id: 'Haircare' as ProductCategory,
+    id: 'Hair' as ProductCategory,
     title: 'Botanical Haircare',
-    subtitle: 'Strengthen & Volumize',
-    description: 'Slow-cooked amla-bhringraj oils and mild herbal shampoo infusions.',
-    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=700&q=80',
-    count: '2 Products'
+    subtitle: 'Nourish & Restore',
+    description: 'Slow-infused herb oils with amla, bhringraj, rosemary and natural shikakai shampoos.',
+    image: './products/advanced_herbs_hair_oil.jpg',
+    count: '4 Products'
   },
   {
-    id: 'Body Care' as ProductCategory,
-    title: 'Heritage Body Care',
-    subtitle: 'Polish & Restore',
-    description: 'Traditional Nalangu Maavu bath ubtans and aromatic sandalwood body lotions.',
-    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=700&q=80',
-    count: '2 Products'
+    id: 'Face' as ProductCategory,
+    title: 'Radiant Skincare',
+    subtitle: 'Pure & Glowing',
+    description: 'Kashmiri saffron serums, anti-acne elixirs, detan face gels & SPF 50 sunscreen.',
+    image: './products/kumkumadi_face_serum.jpg',
+    count: '7 Products'
+  },
+  {
+    id: 'Body' as ProductCategory,
+    title: 'Herbal Soaps & Body',
+    subtitle: 'Gentle & Handcrafted',
+    description: 'Traditional cold-pressed kuppaimeni, kumkumadi glow, and kasturi manjal herbal soaps.',
+    image: './products/kuppaimeni_soap.jpg',
+    count: '4 Products'
+  },
+  {
+    id: 'Milk' as ProductCategory,
+    title: 'Pure Goat Milk Range',
+    subtitle: 'Deep Hydration',
+    description: 'Rich moisturizing goat milk soaps, active face creams and hydrating serums.',
+    image: './products/goat_milk_cream.jpg',
+    count: '3 Products'
+  },
+  {
+    id: 'Combo' as ProductCategory,
+    title: 'Curated Routine Combos',
+    subtitle: 'Targeted Results',
+    description: 'Complete daily care combos for acne cure, bridal radiance, and hair fall rescue.',
+    image: './products/bridal_glow_combo.jpg',
+    count: '4 Combos'
+  },
+  {
+    id: 'Gift Sets' as ProductCategory,
+    title: 'Chettinad Gift Boxes',
+    subtitle: 'Luxury Gifting',
+    description: 'Rigid heritage gift boxes with gold foil packaging, perfect for weddings & festivals.',
+    image: './products/chettinad_gift_box.jpg',
+    count: '2 Gift Boxes'
   }
 ];
 
@@ -61,7 +85,7 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
 

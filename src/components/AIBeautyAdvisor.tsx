@@ -52,9 +52,9 @@ export const AIBeautyAdvisor: React.FC = () => {
     setTimeout(() => {
       // Find matching products based on domain & concern
       let matched = PRODUCTS.filter((p) => {
-        if (selectedDomain === 'Skin' && p.category === 'Skincare') return true;
-        if (selectedDomain === 'Hair' && p.category === 'Haircare') return true;
-        if (selectedDomain === 'Body' && p.category === 'Body Care') return true;
+        if (selectedDomain === 'Skin' && (p.category === 'Face' || p.category === 'Milk')) return true;
+        if (selectedDomain === 'Hair' && p.category === 'Hair') return true;
+        if (selectedDomain === 'Body' && (p.category === 'Body' || p.category === 'Milk')) return true;
         return false;
       });
 
@@ -97,18 +97,18 @@ export const AIBeautyAdvisor: React.FC = () => {
     let matchedProducts: Product[] = [];
     let botReply = '';
 
-    if (q.includes('hair') || q.includes('fall') || q.includes('dandruff') || q.includes('oil')) {
-      matchedProducts = PRODUCTS.filter((p) => p.category === 'Haircare');
-      botReply = 'For hair strengthening, our slow-cooked 18 Chettinad Botanicals Hair Oil and sulfate-free Bhringraj Shikakai Shampoo stop follicle shedding and eliminate scalp dryness.';
-    } else if (q.includes('glow') || q.includes('pigment') || q.includes('spot') || q.includes('tan') || q.includes('cream')) {
-      matchedProducts = PRODUCTS.filter((p) => p.id === 'zn-001' || p.id === 'zn-003');
-      botReply = 'For restoring natural glow and clearing hyperpigmentation, our Kashmiri Saffron Face Cream paired with cold-pressed Green Tea Serum works wonders within 14 days.';
-    } else if (q.includes('bath') || q.includes('soap') || q.includes('body') || q.includes('dry')) {
-      matchedProducts = PRODUCTS.filter((p) => p.category === 'Body Care');
-      botReply = 'For silky soft body skin, replace drying chemical soaps with our heritage Wild Turmeric Nalangu Maavu and sandalwood body lotion.';
+    if (q.includes('hair') || q.includes('fall') || q.includes('dandruff') || q.includes('oil') || q.includes('shampoo')) {
+      matchedProducts = PRODUCTS.filter((p) => p.category === 'Hair' || p.id === 'zn-combo-04');
+      botReply = 'For hair strengthening, our Z Naturals Advanced Herbs Hair Oil and Rosemary / Shikakai Herbal Shampoos nourish follicles from the roots and stop excessive hair shedding.';
+    } else if (q.includes('glow') || q.includes('pigment') || q.includes('spot') || q.includes('tan') || q.includes('acne') || q.includes('pimple') || q.includes('serum')) {
+      matchedProducts = PRODUCTS.filter((p) => p.id === 'zn-face-01' || p.id === 'zn-face-02' || p.id === 'zn-face-03' || p.id === 'zn-combo-02');
+      botReply = 'For radiant, spot-free skin, our Kumkumadi Face Serum enriched with 26 royal herbs, paired with Anti-Acne Serum and Kumkumadi Face Wash, delivers deep nourishment and timeless glow.';
+    } else if (q.includes('bath') || q.includes('soap') || q.includes('body') || q.includes('milk') || q.includes('dry')) {
+      matchedProducts = PRODUCTS.filter((p) => p.category === 'Body' || p.category === 'Milk');
+      botReply = 'For deep moisturizing and silky-smooth skin, our handcrafted Kuppaimeni Herbal Soap and Pure Goat Milk Active Face Cream restore natural lipid balance.';
     } else {
-      matchedProducts = PRODUCTS.slice(0, 2);
-      botReply = 'Thank you for consulting Z NATURALS! Here are our highest-rated botanical formulations crafted for holistic beauty.';
+      matchedProducts = PRODUCTS.filter(p => p.isBestseller).slice(0, 3);
+      botReply = 'Welcome to Z NATURALS! Here are our signature botanical bestsellers handcrafted with cold-pressed natural ingredients.';
     }
 
     setChatMessages((prev) => [

@@ -41,8 +41,12 @@ const MainStoreContent: React.FC = () => {
 
   // Filter products based on category, concern, and search
   const filteredProducts = PRODUCTS.filter((product) => {
-    if (selectedCategory && product.category !== selectedCategory) {
-      return false;
+    if (selectedCategory) {
+      if (selectedCategory === 'Bestsellers') {
+        if (!product.isBestseller && product.badge !== 'Bestseller') return false;
+      } else if (product.category !== selectedCategory) {
+        return false;
+      }
     }
     if (selectedConcern && !product.concerns.includes(selectedConcern)) {
       return false;
