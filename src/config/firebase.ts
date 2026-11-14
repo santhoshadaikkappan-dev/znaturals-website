@@ -22,43 +22,35 @@ export const firebaseConfig = {
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 
-// Helper to get or create invisible reCAPTCHA verifier
-export const getRecaptchaVerifier = (): RecaptchaVerifier => {
-  const container = document.getElementById('recaptcha-container');
-  if (!container) {
-    throw new Error("reCAPTCHA container element not found in DOM");
-  }
-
-  if (!(window as any).recaptchaVerifier) {
-    (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      size: 'invisible',
-      callback: () => {
-        // reCAPTCHA solved
-      },
-      'expired-callback': () => {
-        resetRecaptchaVerifier();
-      }
-    });
-  }
-
-  return (window as any).recaptchaVerifier;
-};
-
-// Reset reCAPTCHA verifier when needed
-export const resetRecaptchaVerifier = () => {
+// Helper to initialize invisible reCAPTCHA
+export const initRecaptchaVerifier = (containerId: string): RecaptchaVerifier => {
+  // If an existing verifier exists on window, clear it first
   if ((window as any).recaptchaVerifier) {
     try {
       (window as any).recaptchaVerifier.clear();
     } catch (e) {
-      // ignore
+      // Ignore cleanup error
     }
-    (window as any).recaptchaVerifier = null;
   }
+
+  const verifier = new RecaptchaVerifier(auth, containerId, {
+    size: 'invisible',
+    callback: () => {
+      // reCAPTCHA solved - will allow signInWithPhoneNumber
+    },
+    'expired-callback': () => {
+      // Reset reCAPTCHA on expiration
+    }
+  });
+
+  (window as any).recaptchaVerifier = verifier;
+  return verifier;
 };
 
 // Send real SMS OTP to Indian mobile number
 export const sendFirebasePhoneOtp = async (
-  rawPhone: string
+  rawPhone: string,
+  appVerifier: RecaptchaVerifier
 ): Promise<ConfirmationResult> => {
   const cleanDigits = rawPhone.replace(/\D/g, '');
   // Format to E.164: +91XXXXXXXXXX
@@ -66,8 +58,7 @@ export const sendFirebasePhoneOtp = async (
     ? `+${cleanDigits}`
     : `+91${cleanDigits}`;
 
-  const verifier = getRecaptchaVerifier();
-  return await signInWithPhoneNumber(auth, formattedPhone, verifier);
+  return await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
 };
 
 // Verify the received 6-digit SMS OTP
