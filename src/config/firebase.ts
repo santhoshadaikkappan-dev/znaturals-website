@@ -22,42 +22,43 @@ export const firebaseConfig = {
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 
-// Helper to initialize invisible reCAPTCHA
-export const initRecaptchaVerifier = async (containerId: string): Promise<RecaptchaVerifier> => {
-  // If an existing verifier exists on window, clear it first
+// Helper to get or create invisible reCAPTCHA verifier
+export const getRecaptchaVerifier = (): RecaptchaVerifier => {
+  const container = document.getElementById('recaptcha-container');
+  if (!container) {
+    throw new Error("reCAPTCHA container element not found in DOM");
+  }
+
+  if (!(window as any).recaptchaVerifier) {
+    (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible',
+      callback: () => {
+        // reCAPTCHA solved
+      },
+      'expired-callback': () => {
+        resetRecaptchaVerifier();
+      }
+    });
+  }
+
+  return (window as any).recaptchaVerifier;
+};
+
+// Reset reCAPTCHA verifier when needed
+export const resetRecaptchaVerifier = () => {
   if ((window as any).recaptchaVerifier) {
     try {
       (window as any).recaptchaVerifier.clear();
     } catch (e) {
-      // Ignore cleanup error
+      // ignore
     }
     (window as any).recaptchaVerifier = null;
   }
-
-  const container = document.getElementById(containerId);
-  if (!container) {
-    throw new Error(`reCAPTCHA container #${containerId} not found in DOM`);
-  }
-
-  const verifier = new RecaptchaVerifier(auth, containerId, {
-    size: 'invisible',
-    callback: () => {
-      console.log('Firebase invisible reCAPTCHA solved successfully');
-    },
-    'expired-callback': () => {
-      console.warn('Firebase reCAPTCHA expired, resetting...');
-    }
-  });
-
-  await verifier.render();
-  (window as any).recaptchaVerifier = verifier;
-  return verifier;
 };
 
 // Send real SMS OTP to Indian mobile number
 export const sendFirebasePhoneOtp = async (
-  rawPhone: string,
-  appVerifier: RecaptchaVerifier
+  rawPhone: string
 ): Promise<ConfirmationResult> => {
   const cleanDigits = rawPhone.replace(/\D/g, '');
   // Format to E.164: +91XXXXXXXXXX
@@ -65,7 +66,8 @@ export const sendFirebasePhoneOtp = async (
     ? `+${cleanDigits}`
     : `+91${cleanDigits}`;
 
-  return await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+  const verifier = getRecaptchaVerifier();
+  return await signInWithPhoneNumber(auth, formattedPhone, verifier);
 };
 
 // Verify the received 6-digit SMS OTP

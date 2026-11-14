@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { X, Phone, ShieldCheck, ArrowRight, User, CheckCircle2, MapPin, RefreshCw, Sparkles, Navigation, AlertTriangle } from 'lucide-react';
+import { X, Phone, ShieldCheck, ArrowRight, User, CheckCircle2, MapPin, RefreshCw, Sparkles, Navigation, AlertCircle } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { requestBrowserGeolocation } from '../utils/geolocation';
-import { initRecaptchaVerifier, sendFirebasePhoneOtp, verifyFirebasePhoneOtp } from '../config/firebase';
+import { sendFirebasePhoneOtp, verifyFirebasePhoneOtp, resetRecaptchaVerifier } from '../config/firebase';
 import type { ConfirmationResult } from 'firebase/auth';
 
 interface AuthModalProps {
@@ -32,7 +32,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [useFirebase, setUseFirebase] = useState(true);
-  const [firebaseError, setFirebaseError] = useState<{ code: string; message: string } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // New Address form
   const [newStreet, setNewStreet] = useState('');
@@ -48,7 +48,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFirebaseError(null);
+    setErrorMessage(null);
     const cleaned = phoneNumber.replace(/\D/g, '');
     if (cleaned.length !== 10 || !/^[6-9]/.test(cleaned)) {
       showToast("Please enter a valid 10-digit Indian mobile number");
@@ -60,21 +60,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
     try {
       // 1. Attempt Real Firebase Phone Authentication SMS
-      const verifier = await initRecaptchaVerifier('recaptcha-container');
-      const confirmation = await sendFirebasePhoneOtp(cleaned, verifier);
+      const confirmation = await sendFirebasePhoneOtp(cleaned);
       setConfirmationResult(confirmation);
       setUseFirebase(true);
       setStep('otp');
       showToast(`📲 Real SMS OTP sent via Firebase to +91 ${cleaned}!`);
     } catch (err: any) {
       console.error("Firebase Phone Auth error:", err);
-      const code = err.code || 'UNKNOWN_ERROR';
-      const msg = err.message || 'Firebase Phone Auth request failed.';
-      setFirebaseError({ code, message: msg });
+      resetRecaptchaVerifier();
+      
+      const code = err.code || 'error';
+      const msg = err.message || 'Firebase failed to send SMS';
+      setErrorMessage(`${code}: ${msg}`);
       showToast(`Firebase Error: ${code}`);
     } finally {
       setIsSendingOtp(false);
     }
+  };
+
+  const handleStartDemoMode = () => {
+    const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedOtp(mockOtp);
+    setUseFirebase(false);
+    setErrorMessage(null);
+    setStep('otp');
+    showToast(`Test Mode Activated: ${mockOtp}`);
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
@@ -369,42 +379,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 </div>
               </div>
 
-              {firebaseError && (
-                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 text-xs space-y-2 text-left">
-                  <div className="font-bold flex items-center gap-1.5 text-amber-900">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>Firebase Auth Notice: {firebaseError.code}</span>
+              {/* Detailed Firebase Error Card if sending fails */}
+              {errorMessage && (
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-900 text-xs space-y-2 animate-fadeIn">
+                  <div className="font-bold flex items-center gap-1.5 text-red-700">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>Firebase Phone Auth Error</span>
                   </div>
-                  <p className="text-[11px] text-amber-900/80 leading-relaxed">
-                    {firebaseError.code === 'auth/unauthorized-domain'
-                      ? `இந்த டொமைன் (${window.location.hostname}) Firebase Console-ல் இன்னும் Authorized Domains-ல் சேர்க்கப்படவில்லை.`
-                      : firebaseError.message}
+                  <p className="font-mono text-[11px] bg-red-100/60 p-2 rounded-lg break-words text-red-950">
+                    {errorMessage}
                   </p>
-                  {firebaseError.code === 'auth/unauthorized-domain' && (
-                    <div className="p-2.5 rounded-xl bg-white/90 border border-amber-200 text-[11px] text-deep-forest space-y-1">
-                      <p className="font-bold">👉 தீர்வு (1 நிமிட வேலை):</p>
-                      <ol className="list-decimal list-inside space-y-1 text-[11px]">
-                        <li>Firebase Console &gt; Authentication &gt; <strong>Settings</strong> Tab செல்லவும்.</li>
-                        <li><strong>Authorized domains</strong> பகுதியில் <strong>Add domain</strong> கிளிக் செய்யவும்.</li>
-                        <li>இந்த URL-ஐ உள்ளிடவும்: <code className="bg-amber-100 text-deep-forest font-mono font-bold px-1.5 py-0.5 rounded">{window.location.hostname}</code></li>
-                        <li>Add செய்துவிட்டு மீண்டும் "Send Mobile OTP" கிளிக் செய்யவும்!</li>
-                      </ol>
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
-                      setGeneratedOtp(mockOtp);
-                      setUseFirebase(false);
-                      setStep('otp');
-                      setFirebaseError(null);
-                      showToast(`Switched to Test Simulation Mode`);
-                    }}
-                    className="w-full py-2 rounded-xl bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold text-[11px] text-center transition-colors"
-                  >
-                    ⚡ Test Simulation Mode-ல் தொடர கிளிக் செய்யவும்
-                  </button>
+                  <div className="pt-1 flex items-center justify-between text-xs">
+                    <button
+                      type="button"
+                      onClick={handleStartDemoMode}
+                      className="font-bold text-amber-900 underline hover:text-amber-950"
+                    >
+                      Use Demo Mode &rarr;
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      className="font-bold text-deep-forest underline hover:text-deep-forest-dark"
+                    >
+                      Retry SMS
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -416,7 +416,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 {isSendingOtp ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
-                    <span>Connecting to Google SMS Gateway...</span>
+                    <span>Sending Real SMS OTP...</span>
                   </>
                 ) : (
                   <>
@@ -516,9 +516,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           )}
 
         </div>
-
-        {/* Invisible reCAPTCHA container for Firebase (permanently mounted) */}
-        <div id="recaptcha-container"></div>
 
       </div>
     </div>
