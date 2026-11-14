@@ -23,7 +23,7 @@ export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getA
 export const auth = getAuth(app);
 
 // Helper to initialize invisible reCAPTCHA
-export const initRecaptchaVerifier = (containerId: string): RecaptchaVerifier => {
+export const initRecaptchaVerifier = async (containerId: string): Promise<RecaptchaVerifier> => {
   // If an existing verifier exists on window, clear it first
   if ((window as any).recaptchaVerifier) {
     try {
@@ -31,18 +31,25 @@ export const initRecaptchaVerifier = (containerId: string): RecaptchaVerifier =>
     } catch (e) {
       // Ignore cleanup error
     }
+    (window as any).recaptchaVerifier = null;
+  }
+
+  const container = document.getElementById(containerId);
+  if (!container) {
+    throw new Error(`reCAPTCHA container #${containerId} not found in DOM`);
   }
 
   const verifier = new RecaptchaVerifier(auth, containerId, {
     size: 'invisible',
     callback: () => {
-      // reCAPTCHA solved - will allow signInWithPhoneNumber
+      console.log('Firebase invisible reCAPTCHA solved successfully');
     },
     'expired-callback': () => {
-      // Reset reCAPTCHA on expiration
+      console.warn('Firebase reCAPTCHA expired, resetting...');
     }
   });
 
+  await verifier.render();
   (window as any).recaptchaVerifier = verifier;
   return verifier;
 };
