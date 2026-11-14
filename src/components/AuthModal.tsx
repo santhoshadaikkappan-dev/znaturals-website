@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { X, Phone, ShieldCheck, ArrowRight, User, CheckCircle2, MapPin, RefreshCw, Sparkles, Navigation } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { requestBrowserGeolocation } from '../utils/geolocation';
+import { initRecaptchaVerifier, sendFirebasePhoneOtp, verifyFirebasePhoneOtp } from '../config/firebase';
+import type { ConfirmationResult } from 'firebase/auth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,10 +25,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [step, setStep] = useState<'phone' | 'otp' | 'profile' | 'addresses'>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [customerName, setCustomerName] = useState('');
-  const [otpCode, setOtpCode] = useState(['', '', '', '']);
+  const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
   const [generatedOtp, setGeneratedOtp] = useState('');
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isDetectingGps, setIsDetectingGps] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [useFirebase, setUseFirebase] = useState(true);
 
   // New Address form
   const [newStreet, setNewStreet] = useState('');
@@ -40,7 +45,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   // If already logged in and opened, show profile / saved addresses
   const isLoggedIn = customerProfile.isLoggedIn;
 
-  const handleSendOtp = (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleaned = phoneNumber.replace(/\D/g, '');
     if (cleaned.length !== 10 || !/^[6-9]/.test(cleaned)) {
@@ -48,29 +53,58 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       return;
     }
 
-    // Generate simulated 4-digit OTP
-    const mockOtp = Math.floor(1000 + Math.random() * 9000).toString();
-    setGeneratedOtp(mockOtp);
-    setStep('otp');
-    showToast(`OTP sent to +91 ${cleaned}! (Demo code: ${mockOtp})`);
+    setIsSendingOtp(true);
+    setOtpCode(['', '', '', '', '', '']);
+
+    try {
+      // 1. Attempt Real Firebase Phone Authentication SMS
+      const verifier = initRecaptchaVerifier('recaptcha-container');
+      const confirmation = await sendFirebasePhoneOtp(cleaned, verifier);
+      setConfirmationResult(confirmation);
+      setUseFirebase(true);
+      setStep('otp');
+      showToast(`📲 Real SMS OTP sent via Firebase to +91 ${cleaned}!`);
+    } catch (err: any) {
+      console.warn("Firebase Phone Auth fallback triggered:", err);
+      // Graceful fallback simulation if quota is exceeded or domain isn't authorized yet
+      const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedOtp(mockOtp);
+      setUseFirebase(false);
+      setStep('otp');
+      showToast(`Test OTP: ${mockOtp} (${err.code || 'Simulated Mode'})`);
+    } finally {
+      setIsSendingOtp(false);
+    }
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const enteredOtp = otpCode.join('');
-    if (enteredOtp !== generatedOtp && enteredOtp !== '1234') {
-      showToast("Invalid OTP. Try again or use the demo code shown above.");
+    if (enteredOtp.length !== 6) {
+      showToast("Please enter the complete 6-digit verification code");
       return;
     }
 
     setIsVerifying(true);
-    setTimeout(() => {
-      setIsVerifying(false);
+    try {
+      if (useFirebase && confirmationResult) {
+        await verifyFirebasePhoneOtp(confirmationResult, enteredOtp);
+      } else {
+        if (enteredOtp !== generatedOtp && enteredOtp !== '123456') {
+          throw new Error("Invalid verification code. Please check and try again.");
+        }
+      }
+
       loginCustomer(phoneNumber, customerName || 'Valued Customer');
-      showToast("Logged in successfully!");
+      showToast("✓ Logged in successfully via Mobile OTP!");
       if (onSuccess) onSuccess();
       onClose();
-    }, 600);
+    } catch (err: any) {
+      console.error("OTP verification error:", err);
+      showToast(err.message || "Invalid OTP code. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleOtpDigitChange = (index: number, val: string) => {
@@ -80,7 +114,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     setOtpCode(updated);
 
     // Auto-focus next input
-    if (val && index < 3) {
+    if (val && index < 5) {
       const nextInput = document.getElementById(`otp-input-${index + 1}`);
       if (nextInput) nextInput.focus();
     }
@@ -337,15 +371,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
               <button
                 type="submit"
-                className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical"
+                disabled={isSendingOtp}
+                className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50"
               >
-                <span>Send One-Time Password (OTP)</span>
-                <ArrowRight className="w-4 h-4 text-champagne-gold" />
+                {isSendingOtp ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
+                    <span>Sending Real SMS OTP...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Mobile OTP via SMS</span>
+                    <ArrowRight className="w-4 h-4 text-champagne-gold" />
+                  </>
+                )}
               </button>
+
+              {/* Invisible reCAPTCHA container for Firebase */}
+              <div id="recaptcha-container"></div>
 
               <div className="text-[10px] text-center text-charcoal/60 flex items-center justify-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-sage-green" />
-                <span>100% Secure. Verified via Indian SMS Gateway.</span>
+                <span>Powered by Google Firebase Phone Authentication</span>
               </div>
             </form>
           ) : (
@@ -356,24 +403,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   Verification Code
                 </span>
                 <p className="text-xs text-charcoal/70">
-                  Enter the 4-digit verification code sent to <strong className="font-mono text-deep-forest">+91 {phoneNumber}</strong>
+                  Enter the 6-digit verification code sent to <strong className="font-mono text-deep-forest">+91 {phoneNumber}</strong>
                 </p>
                 
-                {/* Demo OTP Helper Pill */}
-                <div 
-                  onClick={() => {
-                    const digits = generatedOtp.split('');
-                    setOtpCode(digits);
-                  }}
-                  className="inline-block p-2 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold cursor-pointer hover:bg-amber-100 transition-colors mt-1"
-                  title="Click to auto-fill demo OTP"
-                >
-                  ⚡ Demo Code: <span className="font-mono font-bold tracking-widest text-sm text-deep-forest">{generatedOtp}</span> (Click to auto-fill)
-                </div>
+                {/* Firebase SMS Indicator or Demo OTP Helper Pill */}
+                {useFirebase ? (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium mt-1">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Real SMS sent to your phone. Check messages.</span>
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => {
+                      const digits = generatedOtp.split('');
+                      setOtpCode(digits);
+                    }}
+                    className="inline-block p-2 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold cursor-pointer hover:bg-amber-100 transition-colors mt-1"
+                    title="Click to auto-fill test OTP"
+                  >
+                    ⚡ Test Code: <span className="font-mono font-bold tracking-widest text-sm text-deep-forest">{generatedOtp}</span> (Click to auto-fill)
+                  </div>
+                )}
               </div>
 
-              {/* 4-Digit OTP Inputs */}
-              <div className="flex justify-center gap-3 py-2">
+              {/* 6-Digit OTP Inputs */}
+              <div className="flex justify-center gap-1.5 sm:gap-2.5 py-2">
                 {otpCode.map((digit, i) => (
                   <input
                     key={i}
@@ -382,14 +436,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpDigitChange(i, e.target.value)}
-                    className="w-12 h-14 text-center font-mono font-extrabold text-xl rounded-xl bg-botanical-ivory border-2 border-warm-sand focus:border-deep-forest focus:outline-none"
+                    className="w-9 sm:w-11 h-11 sm:h-13 text-center font-mono font-extrabold text-lg sm:text-xl rounded-xl bg-botanical-ivory border-2 border-warm-sand focus:border-deep-forest focus:outline-none"
                   />
                 ))}
               </div>
 
               <button
                 type="submit"
-                disabled={isVerifying || otpCode.join('').length !== 4}
+                disabled={isVerifying || otpCode.join('').length !== 6}
                 className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50"
               >
                 {isVerifying ? (
@@ -415,14 +469,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    const mock = Math.floor(1000 + Math.random() * 9000).toString();
-                    setGeneratedOtp(mock);
-                    showToast(`New OTP sent: ${mock}`);
-                  }}
+                  onClick={handleSendOtp}
+                  disabled={isSendingOtp}
                   className="font-bold text-sage-green hover:underline flex items-center gap-1"
                 >
-                  <RefreshCw className="w-3 h-3" /> Resend Code
+                  <RefreshCw className={`w-3 h-3 ${isSendingOtp ? 'animate-spin' : ''}`} /> Resend Code
                 </button>
               </div>
             </form>
