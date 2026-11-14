@@ -5,7 +5,7 @@
 
 import { Order } from '../types';
 
-// Official Google Apps Script Webhook for Z NATURALS Order Bills
+// Webhook URL configured via Vite env or direct webhook fallback
 export const GOOGLE_SHEET_WEBHOOK_URL = 
   import.meta.env.VITE_GOOGLE_SHEET_WEBHOOK_URL || 
   'https://script.google.com/macros/s/AKfycbxn0vM3kEj40jXfeCMcmzcdRjDDB1Y_TEDwVHmPswVTe31awQ7wrBKQPX8C0xS0Krnu/exec';

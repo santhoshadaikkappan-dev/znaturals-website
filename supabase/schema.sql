@@ -94,20 +94,22 @@ alter table public.orders enable row level security;
 
 -- Orders Policies
 -- a) Anyone (both logged-in users and guest customers) can create a new order during checkout
+drop policy if exists "Allow order creation for all users and guests" on public.orders;
 create policy "Allow order creation for all users and guests"
   on public.orders for insert
   with check (true);
 
--- b) Allow viewing orders (Both for customer order tracking & Store Owner Admin Portal)
+-- b) Allow viewing orders (for store admin portal & customer receipts)
 drop policy if exists "Users view own orders or Admin views all" on public.orders;
-drop policy if exists "Allow viewing orders" on public.orders;
-create policy "Allow viewing orders"
+drop policy if exists "Allow read orders" on public.orders;
+create policy "Allow read orders"
   on public.orders for select
   using (true);
 
--- c) Store administrators can update orders (for Karaikudi delivery dispatch & settlements)
+-- c) Store administrators can update orders (for Karaikudi delivery dispatch & status)
 drop policy if exists "Admin can update order status and payments" on public.orders;
-create policy "Admin can update order status and payments"
+drop policy if exists "Allow update orders" on public.orders;
+create policy "Allow update orders"
   on public.orders for update
   using (true);
 
@@ -137,8 +139,8 @@ create policy "Allow insert order items"
   with check (true);
 
 drop policy if exists "Users view own order items or Admin views all" on public.order_items;
-drop policy if exists "Allow viewing order items" on public.order_items;
-create policy "Allow viewing order items"
+drop policy if exists "Allow read order items" on public.order_items;
+create policy "Allow read order items"
   on public.order_items for select
   using (true);
 
