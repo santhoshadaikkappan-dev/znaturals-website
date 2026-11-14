@@ -364,29 +364,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Right Utilities (Image 1 style: Search, Lightning Account, Cart Bag) */}
           <div className="flex items-center gap-1.5 sm:gap-3.5 pr-1 sm:pr-0 flex-shrink-0">
             
-            {/* Pincode Pill (Desktop) */}
-            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-botanical-ivory border border-warm-sand text-xs shadow-xs">
-              <button
-                onClick={onOpenPincodeModal}
-                className="flex items-center gap-1 text-deep-forest hover:text-sage-green font-medium"
-                title="Change delivery pincode"
-              >
-                <MapPin className="w-3.5 h-3.5 text-sage-green" />
-                <span className="font-mono font-bold">{customerPincode}</span>
-                <span className="text-[10px] text-charcoal/60">
-                  {deliveryInfo.isKaraikudi ? '(Karaikudi COD)' : '(Courier)'}
-                </span>
-              </button>
-              <button
-                onClick={handleQuickGps}
-                disabled={isLocating}
-                className="p-0.5 text-sage-green hover:text-deep-forest"
-                title="Detect Current GPS Location"
-              >
-                <Navigation className={`w-3 h-3 ${isLocating ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-
             {/* 1. Search Icon */}
             <button
               onClick={onSearchClick}
@@ -494,26 +471,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             </a>
           </div>
 
-          <div className="pt-2 flex items-center justify-between border-t border-warm-sand/60 text-xs">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenPincodeModal();
-              }}
-              className="flex items-center gap-1.5 font-bold text-deep-forest"
-            >
-              <MapPin className="w-4 h-4 text-sage-green" />
-              <span>Pincode: {customerPincode}</span>
-            </button>
-
+          <div className="pt-3 border-t border-warm-sand/60 text-xs">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 setIsAuthModalOpen(true);
               }}
-              className="px-3 py-1.5 rounded-lg bg-deep-forest text-white font-bold"
+              className="w-full py-2.5 rounded-xl bg-deep-forest text-botanical-ivory font-bold flex items-center justify-center gap-2"
             >
-              {customerProfile.isLoggedIn ? 'My Account' : 'Sign In'}
+              <User className="w-4 h-4 text-champagne-gold" />
+              <span>{customerProfile.isLoggedIn ? 'My Botanical Account' : 'Customer Sign In'}</span>
             </button>
           </div>
         </div>

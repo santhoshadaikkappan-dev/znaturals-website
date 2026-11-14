@@ -311,19 +311,14 @@ export const CheckoutModal: React.FC = () => {
               
               {/* Customer Account Prompt / Status */}
               {!customerProfile.isLoggedIn ? (
-                <div className="p-3.5 rounded-2xl bg-botanical-ivory border border-champagne-gold/60 flex items-center justify-between">
-                  <div className="text-xs">
-                    <span className="font-bold text-deep-forest flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-champagne-gold" /> Express Guest Checkout (Active)
-                    </span>
-                    <span className="text-charcoal/70">No login required! Enter delivery details below to order directly.</span>
-                  </div>
+                <div className="p-3 rounded-xl bg-botanical-ivory/80 border border-warm-sand flex items-center justify-between text-xs">
+                  <span className="text-charcoal/80">Have a Z NATURALS account?</span>
                   <button
                     type="button"
                     onClick={() => setIsAuthModalOpen(true)}
-                    className="px-3.5 py-1.5 rounded-xl border border-champagne-gold bg-soft-white text-deep-forest font-bold text-xs hover:bg-champagne-gold/20 transition-all flex-shrink-0"
+                    className="text-deep-forest font-bold underline hover:text-sage-green"
                   >
-                    Login / Sign In
+                    Sign In with Email OTP
                   </button>
                 </div>
               ) : (

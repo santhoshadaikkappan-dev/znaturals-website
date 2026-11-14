@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { requestBrowserGeolocation } from '../utils/geolocation';
-import { signInWithGoogle, sendEmailOtp, verifyEmailOtp, signOutUser } from '../config/supabase';
+import { sendEmailOtp, verifyEmailOtp, signOutUser } from '../config/supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -32,14 +32,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     logoutCustomer, 
     addSavedAddress,
     setCustomerPincode,
-    setIsCheckoutOpen,
     showToast 
   } = useStore();
 
-  const [authMode, setAuthMode] = useState<'options' | 'email-otp'>('options');
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -56,20 +53,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
   const isLoggedIn = customerProfile.isLoggedIn;
 
-  // 1. Google 1-Click Login
-  const handleGoogleLogin = async () => {
-    setIsGoogleLoading(true);
-    try {
-      await signInWithGoogle();
-      showToast("Redirecting to Google Sign-In...");
-    } catch (err: any) {
-      console.error("Google sign in error:", err);
-      showToast(err.message || "Could not sign in with Google.");
-      setIsGoogleLoading(false);
-    }
-  };
-
-  // 2. Send 6-Digit Email OTP
+  // 1. Send 6-Digit Email OTP
   const handleSendEmailOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !email.includes('@')) {
@@ -143,13 +127,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     }
   };
 
-  // 4. Express Guest Checkout
-  const handleGuestCheckout = () => {
-    onClose();
-    setIsCheckoutOpen(true);
-    showToast("Proceeding to Express Guest Checkout (Karaikudi Free Delivery)");
-  };
-
   // GPS Auto-detect for logged in profile
   const handleGpsDetect = async () => {
     setIsDetectingGps(true);
@@ -198,8 +175,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       // Ignore
     }
     logoutCustomer();
-    setAuthMode('options');
     setOtpSent(false);
+    setEmail('');
+    setOtpCode(['', '', '', '', '', '']);
     showToast("Logged out successfully");
   };
 
@@ -398,7 +376,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             </div>
           ) : (
             /* ========================================================
-               VIEW 2: LUXURY LOGIN OPTIONS (GOOGLE + EMAIL OTP + GUEST)
+               VIEW 2: FAST & SECURE EMAIL OTP LOGIN
                ======================================================== */
             <div className="space-y-6">
               
@@ -423,202 +401,119 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 </div>
               </div>
 
-              {authMode === 'options' ? (
-                /* Primary Choice Screen */
-                <div className="space-y-4">
-                  
-                  {/* OPTION A: CONTINUE WITH GOOGLE */}
-                  <button
-                    onClick={handleGoogleLogin}
-                    disabled={isGoogleLoading}
-                    className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-gray-50 border-2 border-warm-sand hover:border-deep-forest text-deep-forest font-sans font-bold text-sm flex items-center justify-center gap-3 transition-all shadow-sm hover:shadow-md group active:scale-[0.99]"
-                  >
-                    {isGoogleLoading ? (
-                      <RefreshCw className="w-5 h-5 animate-spin text-deep-forest" />
-                    ) : (
-                      <svg className="w-5 h-5" viewBox="0 0 24 24">
-                        <path
-                          fill="#4285F4"
-                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              {/* EMAIL OTP LOGIN FORM (DIRECT & FRICTIONLESS) */}
+              <div className="space-y-4">
+                {!otpSent ? (
+                  /* Step 1: Enter Email */
+                  <form onSubmit={handleSendEmailOtp} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-deep-forest mb-1.5">
+                        Enter your Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="e.g. yourname@gmail.com"
+                          className="w-full pl-9 pr-3 py-3 rounded-xl bg-white border border-warm-sand text-xs font-medium focus:outline-none focus:border-deep-forest shadow-xs"
                         />
-                        <path
-                          fill="#34A853"
-                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        />
-                        <path
-                          fill="#FBBC05"
-                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                        />
-                        <path
-                          fill="#EA4335"
-                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                        />
-                      </svg>
-                    )}
-                    <span>Continue with Google</span>
-                  </button>
-
-                  {/* Elegant Divider */}
-                  <div className="relative flex items-center justify-center my-4">
-                    <div className="border-t border-champagne-gold/40 w-full" />
-                    <span className="bg-botanical-ivory px-3 text-[10px] font-bold uppercase tracking-widest text-charcoal/60 whitespace-nowrap">
-                      or login with email otp
-                    </span>
-                    <div className="border-t border-champagne-gold/40 w-full" />
-                  </div>
-
-                  {/* OPTION B: TRIGGER EMAIL OTP FORM */}
-                  <button
-                    onClick={() => setAuthMode('email-otp')}
-                    className="w-full py-3.5 px-4 rounded-2xl bg-deep-forest hover:bg-deep-forest-dark text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-botanical active:scale-[0.99]"
-                  >
-                    <Mail className="w-4 h-4 text-champagne-gold" />
-                    <span>Login with Email OTP (No Password)</span>
-                    <ArrowRight className="w-4 h-4 text-champagne-gold" />
-                  </button>
-
-                  <div className="text-[10px] text-center text-charcoal/60 flex items-center justify-center gap-1.5 pt-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-sage-green" />
-                    <span>Secured with Supabase End-to-End Encryption</span>
-                  </div>
-
-                </div>
-              ) : (
-                /* OPTION B FORM: EMAIL INPUT & 6-DIGIT OTP */
-                <div className="space-y-4">
-                  {!otpSent ? (
-                    /* Step B1: Enter Email */
-                    <form onSubmit={handleSendEmailOtp} className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-bold text-deep-forest mb-1.5">
-                          Enter your Email Address
-                        </label>
-                        <div className="relative">
-                          <Mail className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="e.g. yourname@gmail.com"
-                            className="w-full pl-9 pr-3 py-3 rounded-xl bg-white border border-warm-sand text-xs font-medium focus:outline-none focus:border-deep-forest shadow-xs"
-                          />
-                        </div>
                       </div>
+                      <p className="text-[11px] text-charcoal/60 mt-1">
+                        We will send a 6-digit verification code to your email for passwordless sign-in.
+                      </p>
+                    </div>
 
-                      <button
-                        type="submit"
-                        disabled={isSendingOtp}
-                        className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50"
-                      >
-                        {isSendingOtp ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
-                            <span>Sending Verification Code...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>Send 6-Digit OTP</span>
-                            <ArrowRight className="w-4 h-4 text-champagne-gold" />
-                          </>
-                        )}
-                      </button>
+                    <button
+                      type="submit"
+                      disabled={isSendingOtp}
+                      className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50 active:scale-[0.99]"
+                    >
+                      {isSendingOtp ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
+                          <span>Sending Verification Code...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Send 6-Digit OTP</span>
+                          <ArrowRight className="w-4 h-4 text-champagne-gold" />
+                        </>
+                      )}
+                    </button>
 
+                    <div className="text-[10px] text-center text-charcoal/60 flex items-center justify-center gap-1.5 pt-2">
+                      <ShieldCheck className="w-3.5 h-3.5 text-sage-green" />
+                      <span>Secured with Supabase End-to-End Encryption</span>
+                    </div>
+                  </form>
+                ) : (
+                  /* Step 2: Enter 6-Digit OTP Code */
+                  <form onSubmit={handleVerifyEmailOtp} className="space-y-4">
+                    <div className="text-center space-y-1">
+                      <span className="text-xs font-bold text-sage-green uppercase tracking-wider">
+                        Enter Verification Code
+                      </span>
+                      <p className="text-xs text-charcoal/70">
+                        We have sent a 6-digit code to <strong className="text-deep-forest">{email}</strong>
+                      </p>
+                    </div>
+
+                    {/* 6 Clean Input Boxes */}
+                    <div className="flex justify-center gap-1.5 sm:gap-2 py-2">
+                      {otpCode.map((digit, i) => (
+                        <input
+                          key={i}
+                          id={`email-otp-input-${i}`}
+                          type="text"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpDigitChange(i, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                          className="w-10 sm:w-11 h-12 text-center font-mono font-extrabold text-xl rounded-xl bg-white border-2 border-warm-sand focus:border-deep-forest focus:outline-none shadow-xs"
+                        />
+                      ))}
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isVerifying || otpCode.join('').length !== 6}
+                      className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50 active:scale-[0.99]"
+                    >
+                      {isVerifying ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
+                          <span>Verifying Code...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-champagne-gold" />
+                          <span>Verify & Enter Store</span>
+                        </>
+                      )}
+                    </button>
+
+                    <div className="flex items-center justify-between text-xs text-charcoal/70 pt-1">
                       <button
                         type="button"
-                        onClick={() => setAuthMode('options')}
-                        className="w-full text-center text-xs text-charcoal/70 hover:text-deep-forest underline pt-1"
+                        onClick={() => setOtpSent(false)}
+                        className="underline hover:text-deep-forest"
                       >
-                        ← Back to other login options
+                        Change Email
                       </button>
-                    </form>
-                  ) : (
-                    /* Step B2: Enter 6-Digit OTP Code */
-                    <form onSubmit={handleVerifyEmailOtp} className="space-y-4">
-                      <div className="text-center space-y-1">
-                        <span className="text-xs font-bold text-sage-green uppercase tracking-wider">
-                          Enter Verification Code
-                        </span>
-                        <p className="text-xs text-charcoal/70">
-                          We have sent a 6-digit code to <strong className="text-deep-forest">{email}</strong>
-                        </p>
-                      </div>
-
-                      {/* 6 Clean Input Boxes */}
-                      <div className="flex justify-center gap-1.5 sm:gap-2 py-2">
-                        {otpCode.map((digit, i) => (
-                          <input
-                            key={i}
-                            id={`email-otp-input-${i}`}
-                            type="text"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) => handleOtpDigitChange(i, e.target.value)}
-                            onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                            className="w-10 sm:w-11 h-12 text-center font-mono font-extrabold text-xl rounded-xl bg-white border-2 border-warm-sand focus:border-deep-forest focus:outline-none shadow-xs"
-                          />
-                        ))}
-                      </div>
-
                       <button
-                        type="submit"
-                        disabled={isVerifying || otpCode.join('').length !== 6}
-                        className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50"
+                        type="button"
+                        onClick={handleSendEmailOtp}
+                        disabled={isSendingOtp}
+                        className="font-bold text-sage-green hover:underline flex items-center gap-1"
                       >
-                        {isVerifying ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
-                            <span>Verifying Code...</span>
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 className="w-4 h-4 text-champagne-gold" />
-                            <span>Verify & Enter Store</span>
-                          </>
-                        )}
+                        <RefreshCw className={`w-3 h-3 ${isSendingOtp ? 'animate-spin' : ''}`} /> Resend OTP
                       </button>
-
-                      <div className="flex items-center justify-between text-xs text-charcoal/70 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => setOtpSent(false)}
-                          className="underline hover:text-deep-forest"
-                        >
-                          Change Email
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleSendEmailOtp}
-                          disabled={isSendingOtp}
-                          className="font-bold text-sage-green hover:underline flex items-center gap-1"
-                        >
-                          <RefreshCw className={`w-3 h-3 ${isSendingOtp ? 'animate-spin' : ''}`} /> Resend OTP
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              )}
-
-              {/* ========================================================
-                  EXPRESS GUEST CHECKOUT STRIP (NO LOGIN REQUIRED)
-                  ======================================================== */}
-              <div className="pt-4 border-t border-champagne-gold/30">
-                <div className="p-4 rounded-2xl bg-white/80 border border-warm-sand shadow-xs text-center space-y-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-sage-green block">
-                    Ordering from Karaikudi?
-                  </span>
-                  <p className="text-xs text-charcoal/80">
-                    You don't need an account to place an order! Place orders directly with free doorstep cash/UPI delivery.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleGuestCheckout}
-                    className="w-full py-2.5 px-4 rounded-xl bg-soft-white border border-champagne-gold hover:bg-champagne-gold/15 text-deep-forest font-sans font-bold text-xs uppercase tracking-wider transition-all"
-                  >
-                    ⚡ Express Guest Checkout (No Login)
-                  </button>
-                </div>
+                    </div>
+                  </form>
+                )}
               </div>
 
             </div>
