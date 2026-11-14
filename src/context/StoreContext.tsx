@@ -58,6 +58,10 @@ interface StoreContextType {
   isCheckoutOpen: boolean;
   setIsCheckoutOpen: (open: boolean) => void;
 
+  // Admin / Store Manager Portal
+  isAdminOpen: boolean;
+  setIsAdminOpen: (open: boolean) => void;
+
   // Orders Placed by Customer
   customerOrders: Order[];
   placeCustomerOrder: (orderPayload: {
@@ -96,6 +100,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAiAdvisorOpen, setIsAiAdvisorOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(() => {
+    return window.location.hash === '#admin' || window.location.search.includes('admin');
+  });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeProductModal, setActiveProductModal] = useState<Product | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -457,6 +464,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsAiAdvisorOpen,
         isCheckoutOpen,
         setIsCheckoutOpen,
+        isAdminOpen,
+        setIsAdminOpen,
         customerOrders,
         placeCustomerOrder,
         toastMessage,

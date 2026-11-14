@@ -5,7 +5,7 @@ import { MapPin, Phone, Mail, Clock, Send, ShieldCheck, Heart, Sparkles, User } 
 import { useStore } from '../context/StoreContext';
 
 export const Footer: React.FC = () => {
-  const { setIsAuthModalOpen, setIsAiAdvisorOpen } = useStore();
+  const { setIsAuthModalOpen, setIsAiAdvisorOpen, setIsAdminOpen } = useStore();
   const [newsletterPhone, setNewsletterPhone] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -149,13 +149,22 @@ export const Footer: React.FC = () => {
               </form>
             )}
 
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col items-start gap-2">
               <button
                 onClick={() => setIsAuthModalOpen(true)}
                 className="text-xs text-champagne-gold/90 hover:text-champagne-gold underline font-sans flex items-center gap-1.5 transition-colors"
               >
                 <User className="w-3.5 h-3.5" />
                 Customer Account & Saved Addresses →
+              </button>
+
+              <button
+                onClick={() => setIsAdminOpen(true)}
+                className="text-[11px] text-botanical-ivory/50 hover:text-champagne-gold font-sans flex items-center gap-1.5 transition-colors"
+                title="Store Owner Orders & Bills Manager"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-champagne-gold/70" />
+                Store Owner Portal (Orders & Bills) 🔒
               </button>
             </div>
           </div>

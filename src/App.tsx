@@ -20,6 +20,7 @@ import { FloatingAiButton } from './components/FloatingAiButton';
 import { SearchModal } from './components/SearchModal';
 import { PincodeCheckerModal } from './components/PincodeCheckerModal';
 import { AuthModal } from './components/AuthModal';
+import { AdminPortalModal } from './components/AdminPortalModal';
 import { NotificationToast } from './components/NotificationToast';
 import { PRODUCTS } from './data/products';
 import { ProductCategory, SkinOrHairConcern, Product } from './types';
@@ -30,7 +31,9 @@ const MainStoreContent: React.FC = () => {
     setActiveProductModal,
     setIsAiAdvisorOpen,
     isAuthModalOpen,
-    setIsAuthModalOpen
+    setIsAuthModalOpen,
+    isAdminOpen,
+    setIsAdminOpen
   } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | null>(null);
@@ -165,6 +168,11 @@ const MainStoreContent: React.FC = () => {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      <AdminPortalModal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
       />
 
       <NotificationToast />
