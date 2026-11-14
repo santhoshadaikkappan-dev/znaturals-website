@@ -17,12 +17,15 @@ import {
   Scale,
   Sparkles,
   UserCheck,
-  RefreshCw
+  RefreshCw,
+  Printer,
+  Download
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { isKaraikudiPincode } from '../config/storeConfig';
 import { requestBrowserGeolocation } from '../utils/geolocation';
 import { launchRazorpayCheckout } from '../config/razorpay';
+import { downloadOrdersCSV } from '../utils/googleSheetsSync';
 import { Order, PaymentMethod } from '../types';
 
 export const CheckoutModal: React.FC = () => {
@@ -56,7 +59,6 @@ export const CheckoutModal: React.FC = () => {
   const [pincode, setPincode] = useState(customerPincode || '630001');
   const [deliverySlot, setDeliverySlot] = useState<string>('Daily: 8:00 AM – 12:00 PM');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Razorpay Online (UPI / GPay / PhonePe / Cards)');
-  const [upiUtr, setUpiUtr] = useState('');
   const [notes, setNotes] = useState('');
 
   // GPS State
@@ -191,15 +193,7 @@ export const CheckoutModal: React.FC = () => {
       return;
     }
 
-    // 2. Handling Direct UPI (Zero Fee with manual UTR)
-    if (paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)') {
-      if (!upiUtr.trim() || upiUtr.trim().length < 6) {
-        showToast("Please enter the 12-digit UPI UTR / Transaction Ref ID from your payment app");
-        return;
-      }
-    }
-
-    // 3. Handling Doorstep Cash / COD Delivery
+    // 2. Handling Doorstep Cash / COD Delivery
     const order = placeCustomerOrder({
       customerName: name,
       phone,
@@ -211,8 +205,7 @@ export const CheckoutModal: React.FC = () => {
       pincode,
       deliverySlot: isKaraikudi ? deliverySlot : 'Express Courier (2–4 Days)',
       notes,
-      paymentMethod,
-      upiUtr: paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)' ? upiUtr.trim() : undefined
+      paymentMethod
     });
 
     setCompletedOrder(order);
@@ -349,9 +342,29 @@ export const CheckoutModal: React.FC = () => {
                 </div>
               </div>
 
+              {/* Action Buttons: Download Bill / Print / Continue Shopping */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => downloadOrdersCSV([completedOrder], `znaturals_order_${completedOrder.id}.csv`)}
+                  className="py-3 px-3 rounded-xl border border-champagne-gold/80 bg-white hover:bg-champagne-gold/10 text-deep-forest font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs"
+                >
+                  <Download className="w-3.5 h-3.5 text-champagne-gold" />
+                  <span>Download Bill (Excel/Sheets)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="py-3 px-3 rounded-xl border border-warm-sand bg-white hover:bg-gray-50 text-deep-forest font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs"
+                >
+                  <Printer className="w-3.5 h-3.5 text-sage-green" />
+                  <span>Print Receipt</span>
+                </button>
+              </div>
+
               <button
                 onClick={handleClose}
-                className="w-full py-3 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider hover:bg-deep-forest-dark"
+                className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider hover:bg-deep-forest-dark transition-all shadow-botanical"
               >
                 Back to Botanical Store
               </button>
@@ -678,98 +691,7 @@ export const CheckoutModal: React.FC = () => {
                       </p>
                     </div>
                   </label>
-
-                  {/* Option 3: Direct UPI QR Portal (Zero Fee) */}
-                  <label className={`p-3.5 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
-                    paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)'
-                      ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest shadow-xs'
-                      : 'border-warm-sand bg-white text-charcoal/80 hover:border-champagne-gold'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Pay Online Now via Instant UPI (Zero Fee)"
-                      checked={paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)'}
-                      onChange={() => setPaymentMethod('Pay Online Now via Instant UPI (Zero Fee)')}
-                      className="mt-1 text-deep-forest"
-                    />
-                    <div className="text-xs space-y-0.5">
-                      <span className="font-bold text-sm block">
-                        Direct UPI QR Transfer (Manual 12-Digit UTR)
-                      </span>
-                      <p className="text-[11px] text-charcoal/70 leading-relaxed">
-                        Direct merchant UPI transfer with 0% gateway fee. Requires entering the 12-digit UTR from your UPI app.
-                      </p>
-                    </div>
-                  </label>
                 </div>
-
-                {/* Expanded Instant UPI QR & Deep Link Section */}
-                {paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)' && (
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white border-2 border-champagne-gold/70 shadow-sm space-y-4 animate-fadeIn">
-                    <div className="text-center space-y-1">
-                      <span className="text-[10px] font-bold text-champagne-gold uppercase tracking-wider block">
-                        Direct Botanical UPI Portal
-                      </span>
-                      <h4 className="font-serif font-bold text-deep-forest text-base">
-                        Pay ₹{grandTotal} with any UPI App
-                      </h4>
-                    </div>
-
-                    {/* Dynamic QR Code */}
-                    <div className="flex flex-col items-center justify-center p-3.5 bg-botanical-ivory rounded-2xl border border-warm-sand max-w-[220px] mx-auto text-center">
-                      <img 
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=9344087944@upi&pn=Z%20NATURALS&am=${grandTotal}&cu=INR&tn=ZNaturals%20Order`)}&margin=1`}
-                        alt="Z Naturals Instant UPI QR Code" 
-                        className="w-40 h-40 rounded-xl shadow-xs border border-white"
-                      />
-                      <span className="text-[11px] font-mono font-bold text-deep-forest mt-2">
-                        UPI ID: 9344087944@upi
-                      </span>
-                      <span className="text-[10px] text-charcoal/60">
-                        Exact Order Total: ₹{grandTotal}
-                      </span>
-                    </div>
-
-                    {/* Mobile Deep Link Button */}
-                    <div className="text-center space-y-1">
-                      <a
-                        href={`upi://pay?pa=9344087944@upi&pn=Z%20NATURALS&am=${grandTotal}&cu=INR&tn=ZNaturals%20Order`}
-                        className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider hover:bg-deep-forest-dark transition-all shadow-botanical active:scale-[0.98]"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-champagne-gold" />
-                        <span>⚡ Open GPay / PhonePe / Paytm to Pay ₹{grandTotal}</span>
-                      </a>
-                      <span className="text-[10px] text-charcoal/60 block">
-                        Tap above on your mobile phone to launch your UPI app directly
-                      </span>
-                    </div>
-
-                    {/* 12-Digit UTR Input Box */}
-                    <div className="pt-3 border-t border-warm-sand/60 space-y-1.5">
-                      <label className="block text-xs font-bold text-deep-forest">
-                        Enter 12-Digit UPI Transaction ID / UTR Number *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        maxLength={12}
-                        value={upiUtr}
-                        onChange={(e) => setUpiUtr(e.target.value.replace(/\D/g, ''))}
-                        placeholder="e.g. 431289054321"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory border border-warm-sand font-mono text-sm tracking-widest text-deep-forest font-bold focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                      />
-                      <div className="flex justify-between items-center text-[10px] text-charcoal/60">
-                        <span>Check payment details receipt in GPay / PhonePe for the 12-digit UTR</span>
-                        {upiUtr.length === 12 && (
-                          <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-                            ✓ 12-Digit UTR Entered
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* 4. Order Summary & Price Breakdown */}
@@ -810,8 +732,6 @@ export const CheckoutModal: React.FC = () => {
                     <span>
                       {paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'
                         ? `Pay ₹${grandTotal} with Razorpay (Instant UPI / Cards)`
-                        : paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)'
-                        ? `Confirm Order with UPI Payment • ₹${grandTotal}`
                         : `Place Order with Doorstep Delivery • ₹${grandTotal}`}
                     </span>
                     <ArrowRight className="w-4 h-4 text-champagne-gold" />

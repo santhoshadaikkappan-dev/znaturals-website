@@ -10,6 +10,7 @@ import {
 import { calculateDelivery, DeliveryCalculation } from '../utils/delivery';
 import { isKaraikudiPincode } from '../config/storeConfig';
 import { supabase, saveOrderToSupabase } from '../config/supabase';
+import { syncOrderToGoogleSheet } from '../utils/googleSheetsSync';
 import confetti from 'canvas-confetti';
 
 interface StoreContextType {
@@ -349,7 +350,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const shipping = deliveryInfo.shippingFee;
     const finalTotal = cartTotal + shipping;
 
-    const isOnlinePayment = payload.paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)';
+    const isOnlinePayment = 
+      payload.paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)' ||
+      payload.paymentMethod === 'Pay Online Now via Instant UPI (Zero Fee)';
 
     const newOrder: Order = {
       id: `ZN-${isKaraikudi ? 'KRI' : 'IND'}-${randomNum}`,
@@ -379,7 +382,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       subtotal: cartTotal,
       shippingFee: shipping,
       total: finalTotal,
-      status: 'Pending',
+      status: isOnlinePayment ? 'Confirmed' : 'Pending',
       paymentMethod: payload.paymentMethod,
       paymentStatus: isOnlinePayment ? 'Paid (Online)' : 'Pending (COD)',
       upiUtr: payload.upiUtr
@@ -390,6 +393,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Asynchronously save to Supabase Database (RLS handles guests & registered users)
     saveOrderToSupabase(newOrder, customerProfile.id);
+
+    // Asynchronously sync order to Google Sheets
+    syncOrderToGoogleSheet(newOrder);
 
     // Also sync to global desktop store in localStorage
     try {

@@ -72,7 +72,7 @@ export type PaymentMethod =
   | 'BHIM / Any UPI App'
   | 'Cards & Net Banking';
 
-export type OrderStatus = 'Pending' | 'Out for Delivery' | 'Delivered' | 'Returned';
+export type OrderStatus = 'Pending' | 'Confirmed' | 'Out for Delivery' | 'Delivered' | 'Returned';
 
 export interface OrderItem {
   productId: string;
