@@ -17,6 +17,7 @@ import {
   Scale,
   Sparkles,
   UserCheck,
+  User,
   RefreshCw,
   Printer,
   Download
@@ -117,38 +118,10 @@ export const CheckoutModal: React.FC = () => {
     }
   };
 
-  const fetchCityStateByPincode = async (pin: string) => {
-    if (pin.length !== 6) return;
-    try {
-      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice?.length > 0) {
-          const po = data[0].PostOffice[0];
-          const detectedCity = po.District || po.Block || po.Name;
-          const detectedState = po.State || 'Tamil Nadu';
-          if (detectedCity) {
-            setCity(detectedCity);
-            setCustomerCity(detectedCity);
-          }
-          if (detectedState) {
-            setState(detectedState);
-            setCustomerState(detectedState);
-          }
-        }
-      }
-    } catch (e) {
-      // Ignore network errors
-    }
-  };
-
   const handlePincodeChange = (val: string) => {
     const cleaned = val.replace(/\D/g, '').slice(0, 6);
     setPincode(cleaned);
     setCustomerPincode(cleaned);
-    if (cleaned.length === 6) {
-      fetchCityStateByPincode(cleaned);
-    }
   };
 
   const handleSelectSavedAddress = (addrId: string) => {
@@ -440,11 +413,15 @@ export const CheckoutModal: React.FC = () => {
                 </div>
               )}
 
-              {/* 1. Customer Contact & Address Form */}
-              <div className="space-y-3.5">
+              {/* 1. Customer Details (Name & Mobile Number First) */}
+              <div className="p-4 rounded-2xl border border-warm-sand/80 bg-white shadow-xs space-y-3.5">
+                <span className="text-xs font-extrabold text-deep-forest uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-warm-sand/50">
+                  <User className="w-4 h-4 text-sage-green" /> 1. Customer Contact Details
+                </span>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-xs font-bold text-deep-forest mb-1">
+                    <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                       Full Name *
                     </label>
                     <input
@@ -452,13 +429,12 @@ export const CheckoutModal: React.FC = () => {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Alagappan Chettiar"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-semibold text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-deep-forest mb-1">
+                    <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                       Mobile Number (WhatsApp) *
                     </label>
                     <input
@@ -467,42 +443,32 @@ export const CheckoutModal: React.FC = () => {
                       maxLength={10}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      placeholder="10-digit mobile"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs font-mono focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div>
-                    <label className="block text-xs font-bold text-deep-forest mb-1">
-                      Alternate Phone (Optional)
-                    </label>
-                    <input
-                      type="tel"
-                      value={alternatePhone}
-                      onChange={(e) => setAlternatePhone(e.target.value)}
-                      placeholder="Family member phone"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-deep-forest mb-1">
-                      Nearest Landmark (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={landmark}
-                      onChange={(e) => setLandmark(e.target.value)}
-                      placeholder="e.g. Near New Bus Stand / Chettinad Silks"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-mono font-bold text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-deep-forest mb-1">
+                  <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
+                    Alternate Phone (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={alternatePhone}
+                    onChange={(e) => setAlternatePhone(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-mono text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Delivery Location & Address (After Customer Details) */}
+              <div className="p-4 rounded-2xl border border-warm-sand/80 bg-white shadow-xs space-y-3.5">
+                <span className="text-xs font-extrabold text-deep-forest uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-warm-sand/50">
+                  <MapPin className="w-4 h-4 text-sage-green" /> 2. Delivery Location & Pincode
+                </span>
+
+                <div>
+                  <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                     Delivery Street Address / Door No *
                   </label>
                   <textarea
@@ -510,33 +476,51 @@ export const CheckoutModal: React.FC = () => {
                     rows={2}
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="e.g. 14, Subramaniapuram 2nd Street"
-                    className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-medium text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
                   />
                 </div>
-              </div>
 
-              {/* 2. Delivery Location & Pincode Routing (Weight-Based Courier Slabs) */}
-              <div className="p-4 rounded-2xl border border-warm-sand bg-botanical-ivory space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-deep-forest flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-sage-green" />
-                    Delivery Location & Pincode:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleDetectLocation}
-                    disabled={isLocating}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-soft-white border border-sage-green text-deep-forest text-xs font-semibold hover:bg-sage-green hover:text-white transition-all shadow-sm"
-                  >
-                    <Navigation className={`w-3.5 h-3.5 text-sage-green ${isLocating ? 'animate-spin' : ''}`} />
-                    <span>{isLocating ? 'Detecting GPS...' : '📍 Auto-Detect GPS'}</span>
-                  </button>
+                <div>
+                  <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
+                    Nearest Landmark (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={landmark}
+                    onChange={(e) => setLandmark(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-medium text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[11px] font-bold text-charcoal/70 block mb-1">
+                    <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
+                      City / Town *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-semibold text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
+                      State *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-semibold text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                       Pincode (6-Digit) *
                     </label>
                     <input
@@ -545,67 +529,38 @@ export const CheckoutModal: React.FC = () => {
                       maxLength={6}
                       value={pincode}
                       onChange={(e) => handlePincodeChange(e.target.value)}
-                      placeholder="e.g. 630001"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-bold text-charcoal/70 block mb-1">
-                      City / Town *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g. Karaikudi"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-bold text-charcoal/70 block mb-1">
-                      State *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      placeholder="e.g. Tamil Nadu"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-mono font-bold text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
                     />
                   </div>
                 </div>
 
-                {/* Delivery Fee Status Badge with Weight Breakdown */}
+                {/* Delivery Fee Status & Weight-Based Slab Breakdown */}
                 {shippingFee === 0 ? (
-                  <div className="p-3 rounded-xl bg-emerald-50 text-emerald-900 text-xs border border-emerald-200 space-y-1">
+                  <div className="p-3 rounded-xl bg-emerald-50 text-emerald-900 text-xs border border-emerald-200/90 space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                        <span className="font-semibold">Doorstep Delivery Eligible:</span>
+                        <span className="font-bold text-deep-forest">Doorstep Delivery Eligible:</span>
                       </div>
-                      <span className="font-bold text-emerald-800 font-mono text-xs px-2 py-0.5 bg-emerald-100 rounded-md">FREE (₹0)</span>
+                      <span className="font-bold text-emerald-800 font-mono text-xs px-2.5 py-0.5 bg-emerald-100 rounded-md">FREE (₹0)</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 pt-0.5 border-t border-emerald-200/50">
+                    <div className="flex items-center gap-1.5 text-[11px] text-emerald-800">
                       <Scale className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                      <span>{deliveryInfo.slabDescription}</span>
+                      <span>Parcel Weight: <strong>{cartTotalWeightFormatted}</strong> • 100% Free Doorstep Delivery</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3 rounded-xl bg-blue-50 text-blue-900 text-xs border border-blue-200 space-y-1">
+                  <div className="p-3 rounded-xl bg-blue-50 text-blue-900 text-xs border border-blue-200/90 space-y-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Truck className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        <span className="font-semibold">Standard Delivery to {city || 'your address'}:</span>
+                        <span className="font-bold text-deep-forest">Standard Delivery to {city || 'your address'}:</span>
                       </div>
-                      <span className="font-bold font-mono text-xs">+₹{shippingFee}</span>
+                      <span className="font-bold font-mono text-sm text-blue-900">+₹{shippingFee}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-blue-800 pt-0.5 border-t border-blue-200/50">
+                    <div className="flex items-center gap-1.5 text-[11px] text-blue-900 font-medium">
                       <Scale className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                      <span>{deliveryInfo.slabDescription}</span>
+                      <span>Parcel Weight: <strong>{cartTotalWeightFormatted}</strong> • {deliveryInfo.slabDescription}</span>
                     </div>
                   </div>
                 )}
@@ -689,7 +644,8 @@ export const CheckoutModal: React.FC = () => {
 
                 <div className="flex justify-between items-center">
                   <span className="flex items-center gap-1.5">
-                    <span>Delivery Charge:</span>
+                    <Scale className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
+                    <span>Delivery Charge ({cartTotalWeightFormatted} Parcel Weight):</span>
                   </span>
                   <span className="font-bold text-emerald-800">
                     {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}

@@ -75,31 +75,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const isLoggedIn = customerProfile.isLoggedIn;
   const isInstantPincodeLocal = isKaraikudiPincode(instantPincode);
 
-  const fetchCityState = async (pin: string) => {
-    if (pin.length !== 6) return;
-    try {
-      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice?.length > 0) {
-          const po = data[0].PostOffice[0];
-          const detectedCity = po.District || po.Block || po.Name;
-          const detectedState = po.State || 'Tamil Nadu';
-          if (detectedCity) {
-            setInstantCity(detectedCity);
-            setCustomerCity(detectedCity);
-          }
-          if (detectedState) {
-            setInstantState(detectedState);
-            setCustomerState(detectedState);
-          }
-        }
-      }
-    } catch (e) {
-      // Ignore
-    }
-  };
-
   // Instant Login Handler (Option B)
   const handleInstantLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -403,62 +378,73 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 {/* Add Address Form */}
                 <div className="p-3.5 rounded-2xl bg-white border border-warm-sand/80 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-deep-forest">Add New Address</span>
-                    <button
-                      type="button"
-                      onClick={handleGpsDetect}
-                      disabled={isDetectingGps}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sage-green/10 text-deep-forest text-[11px] font-semibold hover:bg-sage-green/20"
-                    >
-                      <Navigation className={`w-3 h-3 text-sage-green ${isDetectingGps ? 'animate-spin' : ''}`} />
-                      <span>{isDetectingGps ? 'Detecting...' : 'Auto-Detect GPS'}</span>
-                    </button>
+                    <span className="text-xs font-extrabold text-deep-forest">Add New Address</span>
                   </div>
 
-                  <form onSubmit={handleSaveAddress} className="space-y-2 text-xs">
-                    <input
-                      type="text"
-                      required
-                      value={newStreet}
-                      onChange={(e) => setNewStreet(e.target.value)}
-                      placeholder="Door No, Street Name, Area"
-                      className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
-                    />
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        value={newLandmark}
-                        onChange={(e) => setNewLandmark(e.target.value)}
-                        placeholder="Landmark"
-                        className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
-                      />
+                  <form onSubmit={handleSaveAddress} className="space-y-2.5 text-xs">
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-deep-forest mb-1">
+                        Street Address / Door No *
+                      </label>
                       <input
                         type="text"
                         required
-                        value={newCity}
-                        onChange={(e) => setNewCity(e.target.value)}
-                        placeholder="City"
+                        value={newStreet}
+                        onChange={(e) => setNewStreet(e.target.value)}
                         className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        required
-                        value={newState}
-                        onChange={(e) => setNewState(e.target.value)}
-                        placeholder="State"
-                        className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
-                      />
-                      <input
-                        type="text"
-                        required
-                        maxLength={6}
-                        value={newPincode}
-                        onChange={(e) => setNewPincode(e.target.value.replace(/\D/g, ''))}
-                        placeholder="6-Digit PIN"
-                        className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand font-mono"
-                      />
+                      <div>
+                        <label className="block text-[11px] font-extrabold text-deep-forest mb-1">
+                          Landmark
+                        </label>
+                        <input
+                          type="text"
+                          value={newLandmark}
+                          onChange={(e) => setNewLandmark(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-extrabold text-deep-forest mb-1">
+                          City / Town *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newCity}
+                          onChange={(e) => setNewCity(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-extrabold text-deep-forest mb-1">
+                          State *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newState}
+                          onChange={(e) => setNewState(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-extrabold text-deep-forest mb-1">
+                          Pincode (6-Digit) *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={6}
+                          value={newPincode}
+                          onChange={(e) => setNewPincode(e.target.value.replace(/\D/g, ''))}
+                          className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand font-mono"
+                        />
+                      </div>
                     </div>
                     <button
                       type="submit"
@@ -556,7 +542,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 <form onSubmit={handleInstantLogin} className="space-y-3.5">
                   <div className="space-y-3 bg-white p-4 rounded-2xl border border-warm-sand/80 shadow-xs">
                     <div>
-                      <label className="block text-xs font-bold text-deep-forest mb-1">
+                      <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                         Full Name *
                       </label>
                       <div className="relative">
@@ -566,14 +552,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                           required
                           value={instantName}
                           onChange={(e) => setInstantName(e.target.value)}
-                          placeholder="e.g. Alagappan Chettiar"
-                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs focus:outline-none focus:border-deep-forest"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-semibold text-deep-forest focus:outline-none focus:border-deep-forest"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-deep-forest mb-1">
+                      <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                         Mobile Number (WhatsApp) *
                       </label>
                       <div className="relative">
@@ -584,47 +569,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                           maxLength={10}
                           value={instantPhone}
                           onChange={(e) => setInstantPhone(e.target.value.replace(/\D/g, ''))}
-                          placeholder="10-digit mobile number"
-                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-mono focus:outline-none focus:border-deep-forest"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-mono font-bold text-deep-forest focus:outline-none focus:border-deep-forest"
                         />
                       </div>
                     </div>
 
-                    {/* Delivery Pincode with Auto-Detect Button */}
+                    {/* Delivery Pincode */}
                     <div>
-                      <label className="block text-xs font-bold text-deep-forest mb-1">
+                      <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                         Delivery Pincode (6-Digit) *
                       </label>
-                      <div className="flex items-center gap-2">
-                        <div className="relative flex-1">
-                          <MapPin className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input
-                            type="text"
-                            required
-                            maxLength={6}
-                            value={instantPincode}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-                              setInstantPincode(val);
-                              if (val.length === 6) {
-                                setCustomerPincode(val);
-                                fetchCityState(val);
-                              }
-                            }}
-                            placeholder="e.g. 630001"
-                            className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-mono focus:outline-none focus:border-deep-forest"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleInstantGpsDetect}
-                          disabled={isInstantLocating}
-                          className="px-3 py-2.5 rounded-xl border border-warm-sand bg-white text-deep-forest hover:bg-warm-sand/20 text-xs font-semibold flex items-center gap-1.5 flex-shrink-0"
-                          title="Detect via GPS"
-                        >
-                          <Navigation className={`w-3.5 h-3.5 text-sage-green ${isInstantLocating ? 'animate-spin' : ''}`} />
-                          <span className="hidden sm:inline">GPS</span>
-                        </button>
+                      <div className="relative">
+                        <MapPin className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          required
+                          maxLength={6}
+                          value={instantPincode}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '');
+                            setInstantPincode(val);
+                            if (val.length === 6) {
+                              setCustomerPincode(val);
+                            }
+                          }}
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-mono font-bold text-deep-forest focus:outline-none focus:border-deep-forest"
+                        />
                       </div>
 
                       {/* Subtle Delivery Eligibility Feedback */}
@@ -645,15 +615,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-deep-forest mb-1">
+                      <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                         Street Address / Door No (Optional)
                       </label>
                       <input
                         type="text"
                         value={instantStreet}
                         onChange={(e) => setInstantStreet(e.target.value)}
-                        placeholder="e.g. 14, Subramaniapuram 2nd Street"
-                        className="w-full px-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs focus:outline-none focus:border-deep-forest"
+                        className="w-full px-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-medium text-deep-forest focus:outline-none focus:border-deep-forest"
                       />
                     </div>
                   </div>
