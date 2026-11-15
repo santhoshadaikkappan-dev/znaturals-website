@@ -110,14 +110,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Location & Pincode state
   const [customerPincode, setCustomerPincode] = useState<string>(() => {
     try {
-      return localStorage.getItem('zn_customer_pincode') || '630001';
+      return localStorage.getItem('zn_customer_pincode') || '';
     } catch {
-      return '630001';
+      return '';
     }
   });
 
-  const [customerCity, setCustomerCity] = useState<string>('Karaikudi');
-  const [customerState, setCustomerState] = useState<string>('Tamil Nadu');
+  const [customerCity, setCustomerCity] = useState<string>('');
+  const [customerState, setCustomerState] = useState<string>('');
 
   // Customer Profile State (Mobile Login)
   const [customerProfile, setCustomerProfile] = useState<CustomerProfile>(() => {
@@ -131,17 +131,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       name: '',
       phone: '',
       isLoggedIn: false,
-      addresses: [
-        {
-          id: 'addr-default',
-          street: '14, Subramaniapuram 2nd Street',
-          landmark: 'Near Alagappa Matriculation School',
-          city: 'Karaikudi',
-          state: 'Tamil Nadu',
-          pincode: '630006',
-          isDefault: true
-        }
-      ]
+      addresses: []
     };
   });
 

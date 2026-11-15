@@ -14,12 +14,13 @@ import {
   Leaf,
   Phone,
   User,
-  Check
+  Check,
+  ChevronDown
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { requestBrowserGeolocation } from '../utils/geolocation';
 import { sendEmailOtp, verifyEmailOtp, signOutUser } from '../config/supabase';
-import { isKaraikudiPincode } from '../config/storeConfig';
+import { isKaraikudiPincode, INDIAN_STATES } from '../config/storeConfig';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -49,10 +50,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   // Option B Instant Form States
   const [instantName, setInstantName] = useState(customerProfile.name || '');
   const [instantPhone, setInstantPhone] = useState(customerProfile.phone || '');
-  const [instantPincode, setInstantPincode] = useState(customerPincode || '630001');
+  const [instantPincode, setInstantPincode] = useState(customerPincode || '');
   const [instantStreet, setInstantStreet] = useState('');
-  const [instantCity, setInstantCity] = useState(customerCity || 'Karaikudi');
-  const [instantState, setInstantState] = useState(customerState || 'Tamil Nadu');
+  const [instantCity, setInstantCity] = useState(customerCity || '');
+  const [instantState, setInstantState] = useState(customerState || '');
   const [isInstantLocating, setIsInstantLocating] = useState(false);
 
   // Email OTP States
@@ -66,9 +67,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [newStreet, setNewStreet] = useState('');
   const [newLandmark, setNewLandmark] = useState('');
-  const [newCity, setNewCity] = useState(customerCity || 'Karaikudi');
-  const [newState, setNewState] = useState(customerState || 'Tamil Nadu');
-  const [newPincode, setNewPincode] = useState(customerPincode || '630001');
+  const [newCity, setNewCity] = useState(customerCity || '');
+  const [newState, setNewState] = useState(customerState || '');
+  const [newPincode, setNewPincode] = useState(customerPincode || '');
 
   if (!isOpen) return null;
 
@@ -397,7 +398,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-[11px] font-extrabold text-deep-forest mb-1">
-                          Landmark
+                          Landmark (Optional)
                         </label>
                         <input
                           type="text"
@@ -405,6 +406,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                           onChange={(e) => setNewLandmark(e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
                         />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-extrabold text-deep-forest mb-1">
+                          State *
+                        </label>
+                        <div className="relative">
+                          <select
+                            required
+                            value={newState}
+                            onChange={(e) => setNewState(e.target.value)}
+                            className={`w-full px-2.5 py-2 rounded-xl bg-botanical-ivory border border-warm-sand text-xs appearance-none cursor-pointer pr-6 ${
+                              !newState ? 'text-charcoal/40 font-normal' : 'text-deep-forest font-semibold'
+                            }`}
+                          >
+                            <option value="" disabled className="text-gray-400 bg-white">Select State...</option>
+                            {INDIAN_STATES.map((st) => (
+                              <option key={st} value={st} className="text-deep-forest bg-white">{st}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-3.5 h-3.5 text-charcoal/50 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-[11px] font-extrabold text-deep-forest mb-1">
@@ -415,21 +439,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                           required
                           value={newCity}
                           onChange={(e) => setNewCity(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[11px] font-extrabold text-deep-forest mb-1">
-                          State *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={newState}
-                          onChange={(e) => setNewState(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand"
+                          className="w-full px-2.5 py-2 rounded-xl bg-botanical-ivory border border-warm-sand text-xs"
                         />
                       </div>
                       <div>
@@ -442,7 +452,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                           maxLength={6}
                           value={newPincode}
                           onChange={(e) => setNewPincode(e.target.value.replace(/\D/g, ''))}
-                          className="w-full px-3 py-2 rounded-xl bg-botanical-ivory border border-warm-sand font-mono"
+                          className="w-full px-2.5 py-2 rounded-xl bg-botanical-ivory border border-warm-sand text-xs font-mono"
                         />
                       </div>
                     </div>
@@ -574,13 +584,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                       </div>
                     </div>
 
-                    {/* Delivery Pincode */}
-                    <div>
-                      <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
-                        Delivery Pincode (6-Digit) *
-                      </label>
-                      <div className="relative">
-                        <MapPin className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                    {/* Location: State, City, Pincode in requested order */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      {/* 1. State */}
+                      <div>
+                        <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
+                          State *
+                        </label>
+                        <div className="relative">
+                          <select
+                            required
+                            value={instantState}
+                            onChange={(e) => {
+                              setInstantState(e.target.value);
+                              setCustomerState(e.target.value);
+                            }}
+                            className={`w-full px-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs appearance-none cursor-pointer pr-7 ${
+                              !instantState ? 'text-charcoal/40 font-normal' : 'text-deep-forest font-semibold'
+                            }`}
+                          >
+                            <option value="" disabled className="text-gray-400 bg-white">Select State...</option>
+                            {INDIAN_STATES.map((st) => (
+                              <option key={st} value={st} className="text-deep-forest bg-white py-1">{st}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-3.5 h-3.5 text-charcoal/50 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      {/* 2. City / Town */}
+                      <div>
+                        <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
+                          City / Town *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={instantCity}
+                          onChange={(e) => {
+                            setInstantCity(e.target.value);
+                            setCustomerCity(e.target.value);
+                          }}
+                          className="w-full px-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-semibold text-deep-forest focus:outline-none focus:border-deep-forest"
+                        />
+                      </div>
+
+                      {/* 3. Pincode */}
+                      <div>
+                        <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
+                          Pincode (6-Digit) *
+                        </label>
                         <input
                           type="text"
                           required
@@ -593,26 +646,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                               setCustomerPincode(val);
                             }
                           }}
-                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-mono font-bold text-deep-forest focus:outline-none focus:border-deep-forest"
+                          className="w-full px-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-mono font-bold text-deep-forest focus:outline-none focus:border-deep-forest"
                         />
                       </div>
-
-                      {/* Subtle Delivery Eligibility Feedback */}
-                      {instantPincode.length === 6 && (
-                        <div className="mt-1.5 text-[11px]">
-                          {isInstantPincodeLocal ? (
-                            <span className="text-emerald-800 font-semibold flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              Free Doorstep Delivery Eligible (₹0 Delivery Charge)
-                            </span>
-                          ) : (
-                            <span className="text-charcoal/70 flex items-center gap-1">
-                              <span>Standard Express Courier to {instantCity}</span>
-                            </span>
-                          )}
-                        </div>
-                      )}
                     </div>
+
+                    {/* Subtle Delivery Eligibility Feedback */}
+                    {instantPincode.length === 6 && (
+                      <div className="mt-1 text-[11px]">
+                        {isInstantPincodeLocal ? (
+                          <span className="text-emerald-800 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Free Doorstep Delivery Eligible (₹0 Delivery Charge)
+                          </span>
+                        ) : (
+                          <span className="text-charcoal/70 flex items-center gap-1">
+                            <span>Standard Express Courier to {instantCity || instantState || 'your address'}</span>
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-xs font-extrabold text-deep-forest mb-1.5">

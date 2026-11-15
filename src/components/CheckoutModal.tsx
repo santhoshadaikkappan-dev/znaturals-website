@@ -18,12 +18,13 @@ import {
   Sparkles,
   UserCheck,
   User,
+  ChevronDown,
   RefreshCw,
   Printer,
   Download
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { isKaraikudiPincode } from '../config/storeConfig';
+import { isKaraikudiPincode, INDIAN_STATES } from '../config/storeConfig';
 import { requestBrowserGeolocation } from '../utils/geolocation';
 import { launchRazorpayCheckout } from '../config/razorpay';
 import { downloadOrdersCSV } from '../utils/googleSheetsSync';
@@ -56,9 +57,9 @@ export const CheckoutModal: React.FC = () => {
   const [alternatePhone, setAlternatePhone] = useState('');
   const [address, setAddress] = useState('');
   const [landmark, setLandmark] = useState('');
-  const [city, setCity] = useState(customerCity || 'Karaikudi');
-  const [state, setState] = useState(customerState || 'Tamil Nadu');
-  const [pincode, setPincode] = useState(customerPincode || '630001');
+  const [city, setCity] = useState(customerCity || '');
+  const [state, setState] = useState(customerState || '');
+  const [pincode, setPincode] = useState(customerPincode || '');
   const [deliverySlot, setDeliverySlot] = useState<string>('Express Delivery');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Razorpay Online (UPI / GPay / PhonePe / Cards)');
   const [notes, setNotes] = useState('');
@@ -218,8 +219,9 @@ export const CheckoutModal: React.FC = () => {
     setIsCheckoutOpen(false);
   };
 
+  const hasValidPincode = pincode.trim().length === 6;
   const shippingFee = deliveryInfo.shippingFee;
-  const grandTotal = cartTotal + shippingFee;
+  const grandTotal = cartTotal + (hasValidPincode ? shippingFee : 0);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 md:p-6 animate-fadeIn">
@@ -493,6 +495,37 @@ export const CheckoutModal: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* 1. State (First - Dropdown Selection) */}
+                  <div>
+                    <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
+                      State *
+                    </label>
+                    <div className="relative">
+                      <select
+                        required
+                        value={state}
+                        onChange={(e) => {
+                          setState(e.target.value);
+                          setCustomerState(e.target.value);
+                        }}
+                        className={`w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs appearance-none cursor-pointer pr-9 shadow-xs focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest ${
+                          !state ? 'text-charcoal/40 font-normal' : 'text-deep-forest font-semibold'
+                        }`}
+                      >
+                        <option value="" disabled className="text-gray-400 bg-white">
+                          Select State / UT...
+                        </option>
+                        {INDIAN_STATES.map((st) => (
+                          <option key={st} value={st} className="text-deep-forest bg-white py-1.5">
+                            {st}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-charcoal/50 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* 2. City / Town (Second) */}
                   <div>
                     <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                       City / Town *
@@ -501,24 +534,15 @@ export const CheckoutModal: React.FC = () => {
                       type="text"
                       required
                       value={city}
-                      onChange={(e) => setCity(e.target.value)}
+                      onChange={(e) => {
+                        setCity(e.target.value);
+                        setCustomerCity(e.target.value);
+                      }}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-semibold text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
-                      State *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-botanical-ivory/30 border border-warm-sand text-xs font-semibold text-deep-forest focus:outline-none focus:ring-1 focus:ring-deep-forest focus:border-deep-forest shadow-xs"
-                    />
-                  </div>
-
+                  {/* 3. Pincode (Third) */}
                   <div>
                     <label className="block text-xs font-extrabold text-deep-forest mb-1.5">
                       Pincode (6-Digit) *
@@ -535,33 +559,43 @@ export const CheckoutModal: React.FC = () => {
                 </div>
 
                 {/* Delivery Fee Status & Weight-Based Slab Breakdown */}
-                {shippingFee === 0 ? (
-                  <div className="p-3 rounded-xl bg-emerald-50 text-emerald-900 text-xs border border-emerald-200/90 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                        <span className="font-bold text-deep-forest">Doorstep Delivery Eligible:</span>
+                {pincode.length === 6 ? (
+                  shippingFee === 0 ? (
+                    <div className="p-3 rounded-xl bg-emerald-50 text-emerald-900 text-xs border border-emerald-200/90 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <span className="font-bold text-deep-forest">Doorstep Delivery Eligible:</span>
+                        </div>
+                        <span className="font-bold text-emerald-800 font-mono text-xs px-2.5 py-0.5 bg-emerald-100 rounded-md">FREE (₹0)</span>
                       </div>
-                      <span className="font-bold text-emerald-800 font-mono text-xs px-2.5 py-0.5 bg-emerald-100 rounded-md">FREE (₹0)</span>
+                      <div className="flex items-center gap-1.5 text-[11px] text-emerald-800">
+                        <Scale className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                        <span>Parcel Weight: <strong>{cartTotalWeightFormatted}</strong> • 100% Free Doorstep Delivery</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-emerald-800">
-                      <Scale className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                      <span>Parcel Weight: <strong>{cartTotalWeightFormatted}</strong> • 100% Free Doorstep Delivery</span>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-blue-50 text-blue-900 text-xs border border-blue-200/90 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Truck className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                          <span className="font-bold text-deep-forest">Standard Delivery to {city || state || 'your address'}:</span>
+                        </div>
+                        <span className="font-bold font-mono text-sm text-blue-900">+₹{shippingFee}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] text-blue-900 font-medium">
+                        <Scale className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                        <span>Parcel Weight: <strong>{cartTotalWeightFormatted}</strong> • {deliveryInfo.slabDescription}</span>
+                      </div>
                     </div>
-                  </div>
+                  )
                 ) : (
-                  <div className="p-3 rounded-xl bg-blue-50 text-blue-900 text-xs border border-blue-200/90 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Truck className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        <span className="font-bold text-deep-forest">Standard Delivery to {city || 'your address'}:</span>
-                      </div>
-                      <span className="font-bold font-mono text-sm text-blue-900">+₹{shippingFee}</span>
+                  <div className="p-2.5 rounded-xl bg-botanical-ivory/80 text-charcoal/70 text-xs border border-warm-sand/80 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Scale className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
+                      <span>Total Parcel Weight: <strong>{cartTotalWeightFormatted}</strong></span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-blue-900 font-medium">
-                      <Scale className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                      <span>Parcel Weight: <strong>{cartTotalWeightFormatted}</strong> • {deliveryInfo.slabDescription}</span>
-                    </div>
+                    <span className="text-[11px] text-charcoal/60">Enter 6-digit Pincode to view delivery charge</span>
                   </div>
                 )}
               </div>
@@ -648,7 +682,7 @@ export const CheckoutModal: React.FC = () => {
                     <span>Delivery Charge ({cartTotalWeightFormatted} Parcel Weight):</span>
                   </span>
                   <span className="font-bold text-emerald-800">
-                    {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}
+                    {hasValidPincode ? (shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`) : 'Enter Pincode'}
                   </span>
                 </div>
 
