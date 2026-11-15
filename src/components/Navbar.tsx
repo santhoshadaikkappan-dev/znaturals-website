@@ -351,12 +351,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               About us
             </a>
 
-            {/* 10. Blog / Weekend Stall */}
+            {/* 10. Reviews */}
             <a 
-              href="#karaikudi-live-stall"
+              href="#reviews"
               className="hover:text-sage-green transition-colors py-2 tracking-wide"
             >
-              Blog
+              Reviews
             </a>
 
           </nav>
@@ -463,11 +463,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               About Us
             </a>
             <a 
-              href="#karaikudi-live-stall"
+              href="#reviews"
               onClick={() => setMobileMenuOpen(false)}
               className="py-2"
             >
-              Weekend Live Stall
+              Customer Reviews
             </a>
           </div>
 

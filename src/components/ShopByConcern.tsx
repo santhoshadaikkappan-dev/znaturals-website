@@ -48,15 +48,20 @@ export const ShopByConcern: React.FC<ShopByConcernProps> = ({
                     : 'bg-soft-white text-deep-forest border-warm-sand/60 hover:border-champagne-gold hover:shadow-botanical'
                 }`}
               >
-                {/* Visual Rounded Icon Circle */}
+                {/* Visual Rounded Detailed Botanical Image Circle */}
                 <div 
-                  className={`w-14 h-14 rounded-full flex items-center justify-center mb-2.5 text-2xl transition-transform group-hover:scale-110 ${
+                  className={`w-16 h-16 rounded-full overflow-hidden mb-2.5 p-0.5 border-2 transition-all duration-300 group-hover:scale-110 shadow-sm ${
                     isSelected 
-                      ? 'bg-botanical-ivory/20 text-champagne-gold' 
-                      : 'bg-botanical-ivory text-deep-forest border border-warm-sand'
+                      ? 'border-champagne-gold ring-2 ring-champagne-gold/50 bg-champagne-gold/20' 
+                      : 'border-warm-sand bg-white group-hover:border-champagne-gold'
                   }`}
                 >
-                  <span>{concern.icon}</span>
+                  <img 
+                    src={concern.image} 
+                    alt={concern.name}
+                    className="w-full h-full object-cover rounded-full"
+                    loading="lazy"
+                  />
                 </div>
 
                 {/* Concern Title */}

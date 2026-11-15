@@ -13,11 +13,11 @@ export const BotanicalStorySection: React.FC = () => {
           <div className="lg:col-span-5 relative">
             <div className="relative mx-auto max-w-md">
               
-              <div className="rounded-3xl overflow-hidden shadow-botanical-lg border-2 border-warm-sand/60 aspect-[4/5] bg-warm-sand/20">
+              <div className="rounded-3xl overflow-hidden shadow-botanical-lg border-2 border-warm-sand/60 aspect-[4/5] bg-warm-sand/20 group">
                 <img
-                  src="https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80"
-                  alt="Z Naturals Botanical Crafting"
-                  className="w-full h-full object-cover object-center"
+                  src="./models/heritage_indian_man.jpg"
+                  alt="Z Naturals Botanical Heritage Care"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
               </div>
 

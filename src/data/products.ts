@@ -1,13 +1,13 @@
 import { Product, SkinOrHairConcern } from '../types';
 
-export const CONCERN_LIST: { id: SkinOrHairConcern; name: string; tagline: string; icon: string }[] = [
-  { id: 'Daily Glow', name: 'Daily Glow & Radiance', tagline: 'Kashmiri Saffron & Kumkumadi', icon: '✨' },
-  { id: 'Hair Fall', name: 'Hair Fall Control', tagline: '18 Chettinad Herbs & Bringraj', icon: '🌿' },
-  { id: 'Pigmentation', name: 'Pigmentation & Tan', tagline: 'Wild Turmeric & Rose Hydrosol', icon: '🌸' },
-  { id: 'Acne & Blemishes', name: 'Acne & Pimple Clear', tagline: 'Wild Kuppaimeni & Tea Tree', icon: '🍃' },
-  { id: 'Dry Skin', name: 'Deep Moisture & Barrier', tagline: 'Farm Goat Milk & Shea Butter', icon: '🥛' },
-  { id: 'Dandruff', name: 'Dandruff & Itchy Scalp', tagline: 'Neem & Shikakai Decoction', icon: '🌱' },
-  { id: 'Sensitive Skin', name: 'Gentle & Calming', tagline: 'Aloe Vera & Chamomile Extract', icon: '💧' }
+export const CONCERN_LIST: { id: SkinOrHairConcern; name: string; tagline: string; icon: string; image: string }[] = [
+  { id: 'Daily Glow', name: 'Daily Glow & Radiance', tagline: 'Kashmiri Saffron & Kumkumadi', icon: '✨', image: './concerns/concern_daily_glow.jpg' },
+  { id: 'Hair Fall', name: 'Hair Fall Control', tagline: '18 Chettinad Herbs & Bringraj', icon: '🌿', image: './concerns/concern_hair_fall.jpg' },
+  { id: 'Pigmentation', name: 'Pigmentation & Tan', tagline: 'Wild Turmeric & Rose Hydrosol', icon: '🌸', image: './concerns/concern_pigmentation.jpg' },
+  { id: 'Acne & Blemishes', name: 'Acne & Pimple Clear', tagline: 'Wild Kuppaimeni & Tea Tree', icon: '🍃', image: './concerns/concern_acne.jpg' },
+  { id: 'Dry Skin', name: 'Deep Moisture & Barrier', tagline: 'Farm Goat Milk & Shea Butter', icon: '🥛', image: './concerns/concern_dry_skin.jpg' },
+  { id: 'Dandruff', name: 'Dandruff & Itchy Scalp', tagline: 'Neem & Shikakai Decoction', icon: '🌱', image: './concerns/concern_dandruff.jpg' },
+  { id: 'Sensitive Skin', name: 'Gentle & Calming', tagline: 'Aloe Vera & Chamomile Extract', icon: '💧', image: './concerns/concern_sensitive_skin.jpg' }
 ];
 
 export const PRODUCTS: Product[] = [

@@ -105,8 +105,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
                 className="relative rounded-3xl overflow-hidden shadow-botanical-lg border-2 border-warm-sand/60 bg-soft-white aspect-[4/5] group cursor-pointer"
               >
                 <img 
-                  src="./products/kumkumadi_face_serum.jpg" 
-                  alt="Z Naturals Kumkumadi Face Serum" 
+                  src="./models/hero_indian_woman.jpg" 
+                  alt="Z Naturals Kumkumadi Botanical Beauty" 
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
 
@@ -146,14 +146,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
                 </span>
               </div>
 
-              {/* Floating Local Stall Invitation Badge */}
+              {/* Floating Botanical Purity Badge */}
               <div className="absolute -bottom-4 -left-4 hidden sm:flex items-center gap-3 p-3 rounded-2xl bg-deep-forest text-botanical-ivory shadow-xl border border-champagne-gold/40">
                 <div className="w-8 h-8 rounded-full bg-champagne-gold/20 flex items-center justify-center text-champagne-gold font-bold text-xs">
-                  FRI
+                  <Sparkles className="w-4 h-4 text-champagne-gold" />
                 </div>
                 <div className="text-left text-xs pr-2">
-                  <div className="font-bold text-champagne-gold">Weekend Live Stall</div>
-                  <div className="text-[10px] text-botanical-ivory/80">Fri – Sun: 5:30 PM – 9:30 PM</div>
+                  <div className="font-bold text-champagne-gold">100% Pure Botanical</div>
+                  <div className="text-[10px] text-botanical-ivory/80">Chettinad Heritage Recipe</div>
                 </div>
               </div>
 

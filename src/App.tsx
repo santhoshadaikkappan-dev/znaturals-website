@@ -8,7 +8,6 @@ import { BrandTrustStrip } from './components/BrandTrustStrip';
 import { ShopByConcern } from './components/ShopByConcern';
 import { ShopByCategory } from './components/ShopByCategory';
 import { ProductGrid } from './components/ProductGrid';
-import { LiveStallSection } from './components/LiveStallSection';
 import { BotanicalStorySection } from './components/BotanicalStorySection';
 import { ReviewsSection } from './components/ReviewsSection';
 import { Footer } from './components/Footer';
@@ -106,19 +105,13 @@ const MainStoreContent: React.FC = () => {
       {/* 4. Brand Trust Strip (5 Line Icons) */}
       <BrandTrustStrip />
 
-      {/* 5. Shop by Concern (Circular Cards) */}
-      <ShopByConcern
-        selectedConcern={selectedConcern}
-        onSelectConcern={(c) => setSelectedConcern(c)}
-      />
-
-      {/* 6. Shop by Category (Skincare, Haircare, Body Care) */}
+      {/* 5. Shop by Category (Skincare, Haircare, Body Care) */}
       <ShopByCategory
         selectedCategory={selectedCategory}
         onSelectCategory={(cat) => setSelectedCategory(cat)}
       />
 
-      {/* 7. Signature Bestsellers Grid */}
+      {/* 6. Signature Bestsellers Grid (Products Section) */}
       <ProductGrid
         products={filteredProducts}
         selectedCategory={selectedCategory}
@@ -128,10 +121,13 @@ const MainStoreContent: React.FC = () => {
         onOpenAiAdvisor={() => setIsAiAdvisorOpen(true)}
       />
 
-      {/* 8. Karaikudi Weekend Live Stall Section */}
-      <LiveStallSection />
+      {/* 7. Shop by Concern (Targeted Botanical Solutions - Placed After Products) */}
+      <ShopByConcern
+        selectedConcern={selectedConcern}
+        onSelectConcern={(c) => setSelectedConcern(c)}
+      />
 
-      {/* 11. Chettinad Heritage Botanical Story Section */}
+      {/* 8. Chettinad Heritage Botanical Story Section */}
       <BotanicalStorySection />
 
       {/* 12. Verified Customer Reviews */}

@@ -79,18 +79,18 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Col 3: Karaikudi Hub & Weekend Stall */}
+          {/* Col 3: Karaikudi Hub & Doorstep Delivery */}
           <div className="lg:col-span-3 space-y-3">
             <h4 className="font-serif font-bold text-base text-botanical-ivory uppercase tracking-wider">
-              Karaikudi Experience
+              Karaikudi Hub
             </h4>
             <div className="space-y-2.5 text-xs text-botanical-ivory/75">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-champagne-gold flex-shrink-0 mt-0.5" />
                 <span>
-                  <strong>Weekend Live Stall:</strong><br />
-                  Kallukatti Gandhi Square, Karaikudi<br />
-                  Fri, Sat & Sun: 5:30 PM – 9:30 PM
+                  <strong>Chettinad Dispatch Hub:</strong><br />
+                  Sekkalai Road, Karaikudi<br />
+                  Direct Doorstep Express Delivery
                 </span>
               </div>
 
@@ -117,7 +117,7 @@ export const Footer: React.FC = () => {
               WhatsApp Club
             </h4>
             <p className="text-xs text-botanical-ivory/70 leading-relaxed">
-              Join our Karaikudi botanical circle for weekend stall perks, new harvest launches, and skin health tips.
+              Join our Karaikudi botanical circle for exclusive seasonal launches, fresh harvest perks, and skin health tips.
             </p>
 
             {subscribed ? (
@@ -144,7 +144,7 @@ export const Footer: React.FC = () => {
                   </button>
                 </div>
                 <span className="text-[10px] text-botanical-ivory/50 block">
-                  No spam. Only botanical beauty updates & stall announcements.
+                  No spam. Only botanical beauty updates & fresh batch alerts.
                 </span>
               </form>
             )}
