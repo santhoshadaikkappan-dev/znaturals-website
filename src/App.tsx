@@ -10,6 +10,7 @@ import { ShopByCategory } from './components/ShopByCategory';
 import { ProductGrid } from './components/ProductGrid';
 import { BotanicalStorySection } from './components/BotanicalStorySection';
 import { ReviewsSection } from './components/ReviewsSection';
+import { OneRupeeTestCatalogBanner } from './components/OneRupeeTestCatalogBanner';
 import { Footer } from './components/Footer';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { CartDrawer } from './components/CartDrawer';
@@ -130,10 +131,13 @@ const MainStoreContent: React.FC = () => {
       {/* 8. Chettinad Heritage Botanical Story Section */}
       <BotanicalStorySection />
 
-      {/* 12. Verified Customer Reviews */}
+      {/* 9. Verified Customer Reviews */}
       <ReviewsSection />
 
-      {/* 13. Luxury Footer */}
+      {/* 10. ₹1 Live Payment Test & Official Botanical Catalog PDF (Bottom of Website) */}
+      <OneRupeeTestCatalogBanner />
+
+      {/* 11. Luxury Footer */}
       <Footer />
 
       {/* Modals, Drawers & Overlays */}

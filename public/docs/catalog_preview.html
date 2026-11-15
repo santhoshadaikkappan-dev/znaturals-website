@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Z NATURALS — Botanical Product Catalog & Herbal Guide 2026</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm;
+    @bottom-center {
+      content: "Z NATURALS • Authentic Chettinad Botanicals • Page " counter(page);
+      font-size: 8pt;
+      color: #78716c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1c1917;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .cover-page {
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 250mm;
+    border: 3px solid #263D32;
+    border-radius: 16px;
+    padding: 40px 32px;
+    background: #FAF8F5;
+    text-align: center;
+  }
+  .brand-logo {
+    font-family: Georgia, serif;
+    font-size: 38px;
+    font-weight: 800;
+    color: #263D32;
+    letter-spacing: 3px;
+    margin: 0;
+  }
+  .brand-tagline {
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #854d0e;
+    letter-spacing: 2.5px;
+    margin-top: 8px;
+  }
+  .catalog-badge {
+    display: inline-block;
+    background: #263D32;
+    color: #F5F0E6;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 24px;
+  }
+  .cover-pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 30px 0;
+    text-align: left;
+  }
+  .pillar-box {
+    background: #ffffff;
+    border: 1px solid #e7dfd5;
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .pillar-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #263D32;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .pillar-text {
+    font-size: 10px;
+    color: #57534e;
+    line-height: 1.4;
+  }
+  .cover-footer {
+    border-top: 2px solid #C5A16B;
+    padding-top: 16px;
+    font-size: 11px;
+    color: #44403c;
+  }
+  .category-section {
+    page-break-inside: avoid;
+    margin-bottom: 24px;
+  }
+  .category-header {
+    background: #263D32;
+    color: #F5F0E6;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: Georgia, serif;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .category-count {
+    font-size: 10px;
+    font-family: -apple-system, sans-serif;
+    background: #C5A16B;
+    color: #263D32;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+  }
+  .products-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .product-card {
+    border: 1px solid #e7dfd5;
+    border-radius: 10px;
+    padding: 12px;
+    background: #ffffff;
+    page-break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .product-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #263D32;
+    font-family: Georgia, serif;
+    margin: 0 0 2px 0;
+  }
+  .product-tagline {
+    font-size: 10px;
+    color: #78716c;
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+  .product-desc {
+    font-size: 10px;
+    color: #44403c;
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+  .product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dashed #e7dfd5;
+    padding-top: 8px;
+    margin-top: 6px;
+    font-size: 11px;
+  }
+  .price-tag {
+    font-size: 14px;
+    font-weight: 800;
+    color: #15803d;
+  }
+  .orig-price {
+    text-decoration: line-through;
+    color: #a8a29e;
+    font-size: 10px;
+    margin-left: 4px;
+  }
+  .badge-pill {
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .target-pill {
+    font-size: 9px;
+    color: #065f46;
+    background: #ecfdf5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="cover-page">
+    <div>
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #78716c;">Official Chettinad Botanical Edition</div>
+      <h1 class="brand-logo">Z NATURALS</h1>
+      <p class="brand-tagline">Nature's Goodness. Your Kind of Beauty.</p>
+      
+      <div class="catalog-badge">Full Product Catalog & Herbal Care Formulary 2026</div>
+
+      <div style="max-width: 520px; margin: 30px auto; font-size: 12px; line-height: 1.6; color: #44403c;">
+        Welcome to the official Z NATURALS Botanical Formulary. Handcrafted with cold-pressed natural seed oils, 
+        wild-harvested herbs, and traditional Chettinad beauty wisdom. Every formulation is 100% free from harsh sulfates, 
+        parabens, silicones, and synthetic fillers.
+      </div>
+
+      <div class="cover-pillars">
+        <div class="pillar-box">
+          <div class="pillar-title">100% Cold-Pressed</div>
+          <div class="pillar-text">Unheated extraction preserving bioactive plant enzymes and raw natural nutrients.</div>
+        </div>
+        <div class="pillar-box">
+          <div class="pillar-title">Chettinad Herbs</div>
+          <div class="pillar-text">Directly sourced wild Bringraj, Amla, Kuppaimeni, and Kasturi Turmeric from ethical local growers.</div>
+        </div>
+        <div class="pillar-box">
+          <div class="pillar-title">Zero Harsh Chemicals</div>
+          <div class="pillar-text">Dermatologically tested formulations formulated for sensitive Indian skin & humid climates.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <strong>Z NATURALS Central Operations & Dispatch Hub:</strong> Sekkalai Road, Karaikudi, Tamil Nadu - 630001<br/>
+      Direct Order Helpline: <strong>+91 9344087944</strong> | Online Store: <strong>https://znaturals.vercel.app</strong><br/>
+      <span style="font-size: 9px; color: #78716c; margin-top: 6px; display: inline-block;">© 2026 Z NATURALS. All Rights Reserved. Official Verified PDF Document.</span>
+    </div>
+  </div>
+
+  <!-- PRODUCTS BY CATEGORY -->
+
+    <div class="category-section">
+      <div class="category-header">
+        <span>HAIR CARE FORMULATIONS</span>
+        <span class="category-count">4 Products</span>
+      </div>
+      <div class="products-grid">
+    
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Advanced Herbs Hair Oil</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">18 Chettinad Botanicals • Amla • Rosemary • Curry Leaves</div>
+            <p class="product-desc">Slow-cooked 72-hour Ayurvedic hair elixir infused with 18 Chettinad herbs to control excessive hair fall and stimulate thick roots.</p>
+            <div class="target-pill">🎯 Ideal for weak roots, post-monsoon hair fall, and thinning hair</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> False Daisy (Bringraj), Indian Gooseberry (Amla), Rosemary Leaf Infusion, Fresh Curry Leaves, Cold-Pressed Sesame & Virgin Coconut Oil</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹399</span><span class="orig-price">₹499</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              100 ml (140g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Anti-Dandruff Hair Oil</h3>
+              <span class="badge-pill">Customer Favorite</span>
+            </div>
+            <div class="product-tagline">Neem Leaf • Tea Tree • Sprouted Methi • Bhimseni Camphor</div>
+            <p class="product-desc">Potent antifungal herbal hair oil that clears stubborn white flakes, controls scalp itch, and eliminates bacterial buildup.</p>
+            <div class="target-pill">🎯 For chronic dandruff, itchy scalps, and seasonal flakiness</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Wild Neem Leaf Extract, Pure Tea Tree Essential Oil, Sprouted Methi (Fenugreek), Bhimseni Camphor</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹399</span><span class="orig-price">₹499</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              100 ml (140g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Shikakai Herbal Shampoo</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Wild Shikakai Pods • Red Hibiscus • Reetha • Vetiver</div>
+            <p class="product-desc">Gentle sulfate-free traditional hair cleanser rooted in Chettinad herbal decoctions to cleanse without stripping natural scalp moisture.</p>
+            <div class="target-pill">🎯 All hair types, specially formulated for hair fall and sensitive scalps</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Wild Shikakai Pod Decoction, Red Hibiscus Petal Extract, Soapnut (Reetha) Infusion, Vetiver (Khus) Water</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹399</span><span class="orig-price">₹480</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              100 ml (140g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Rosemary Herbal Shampoo</h3>
+              <span class="badge-pill">New Launch</span>
+            </div>
+            <div class="product-tagline">Rosemary Essential Oil • Peppermint • Sprouted Fenugreek • Plant Biotin</div>
+            <p class="product-desc">Refreshing hair revitalizing shampoo enriched with pure Rosemary and Peppermint to awaken dormant follicles and add glossy volume.</p>
+            <div class="target-pill">🎯 For thinning hair, oily scalps, and limp flat strands</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Rosemary Essential Oil, Peppermint Extract, Plant Biotin</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹430</span><span class="orig-price">₹520</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              100 ml (140g)
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="category-section">
+      <div class="category-header">
+        <span>FACE CARE FORMULATIONS</span>
+        <span class="category-count">7 Products</span>
+      </div>
+      <div class="products-grid">
+    
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Kumkumadi Face Serum</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Kashmiri Saffron • Sandalwood • Vetiver • 26 Royal Ayurvedic Herbs</div>
+            <p class="product-desc">The legendary Ayurvedic youth nectar crafted with authentic Kashmiri Saffron and Sandalwood to fade spots and impart golden luminosity.</p>
+            <div class="target-pill">🎯 Suitable for all skin types, especially uneven tone, dullness, and dark spots</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Pure Kashmiri Saffron (Kesar), Red Sandalwood (Rakta Chandana), Indian Madder (Manjistha), Khus Vetiver</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹449</span><span class="orig-price">₹599</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              20 ml (80g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Anti-Acne & Pimple Face Serum</h3>
+              <span class="badge-pill">Pure Botanical</span>
+            </div>
+            <div class="product-tagline">Tea Tree • Neem Leaf • White Willow Bark • Centella (Gotu Kola)</div>
+            <p class="product-desc">Fast-action water-light botanical serum that calms active pimples in 48 hours, clears whiteheads, and prevents post-acne blemishes.</p>
+            <div class="target-pill">🎯 For oily, combination, acne-prone, and breakout-troubled skin</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Australian Tea Tree Leaf Oil, White Willow Bark Extract, Gotu Kola (Centella Asiatica)</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹449</span><span class="orig-price">₹550</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              20 ml (80g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Kumkumadi Face Wash</h3>
+              <span class="badge-pill">Customer Favorite</span>
+            </div>
+            <div class="product-tagline">Kashmiri Saffron • Rose Water • Red Sandalwood • Aloe Vera</div>
+            <p class="product-desc">Gentle clarifying facial cleanser infused with Kashmiri Saffron and Rose Water to wash away dirt and impart an instant dewy glow.</p>
+            <div class="target-pill">🎯 Suitable for all skin types, including dry and sensitive skin</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Kashmiri Saffron Infusion, Pure Damask Rose Water, Vegetable Glycerin & Aloe Vera</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹469</span><span class="orig-price">₹580</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              50 ml (90g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Detan Face Gel</h3>
+              <span class="badge-pill">Pure Botanical</span>
+            </div>
+            <div class="product-tagline">Cooling Cucumber • Kasturi Turmeric • Aloe Vera • Papaya Enzyme</div>
+            <p class="product-desc">Ultra-cooling, oil-free hydration gel that dissolves stubborn sun tan, cools heat redness, and evens out sun-damaged skin.</p>
+            <div class="target-pill">🎯 Best for sun-tanned, heated, oily, or outdoor-exposed skin</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Wild Kasturi Turmeric, Fresh Cucumber Juice, Papaya Enzyme (Papain)</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹399</span><span class="orig-price">₹499</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              50 gm (110g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals SPF 50 Botanical Sunscreen</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Non-Nano Zinc Oxide • Red Raspberry Seed • Green Tea • Aloe Vera</div>
+            <p class="product-desc">Ultra-light mineral sunscreen offering broad-spectrum PA++++ protection with zero white cast and a velvety matte finish.</p>
+            <div class="target-pill">🎯 Suitable for all skin types, including sensitive and acne-prone skin</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Non-Nano Zinc Oxide (20%), Red Raspberry Seed Oil, Organic Aloe Vera Pulp</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹410</span><span class="orig-price">₹520</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              50 ml (100g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Pure Rose Water Toner</h3>
+              <span class="badge-pill">Customer Favorite</span>
+            </div>
+            <div class="product-tagline">100% Steam-Distilled Indian Damask Rose Petals (Gulab Jal)</div>
+            <p class="product-desc">Pure hydro-distilled floral mist crafted from fresh Kannauj Damask rose petals to hydrate, tone pores, and refresh tired skin.</p>
+            <div class="target-pill">🎯 For all skin types, particularly dry, sensitive, or overheated skin</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Pure Damask Rose Hydrosol</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹190</span><span class="orig-price">₹250</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              100 ml (140g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Lip Lightening Serum Lip Balm</h3>
+              <span class="badge-pill">Customer Favorite</span>
+            </div>
+            <div class="product-tagline">Wild Beetroot Extract • Kashmiri Saffron • Raw Cocoa Butter • Almond Oil</div>
+            <p class="product-desc">Nourishing butter balm enriched with Beetroot and Saffron to fade dark lip pigmentation and heal dry, cracked lips with a soft natural rosy tint.</p>
+            <div class="target-pill">🎯 For dry, chapped, dark, or pigmented lips</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Wild Beetroot Extract, Kashmiri Saffron Oil, Pure Cocoa Butter & Almond Oil</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹190</span><span class="orig-price">₹240</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              10 gm (30g)
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="category-section">
+      <div class="category-header">
+        <span>BODY CARE FORMULATIONS</span>
+        <span class="category-count">4 Products</span>
+      </div>
+      <div class="products-grid">
+    
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Kuppaimeni Herbal Soap</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Wild Kuppaimeni Leaves • Neem • Virgin Coconut Oil • Mahua Oil</div>
+            <p class="product-desc">Classical Chettinad cold-processed soap made with wild fresh Kuppaimeni and Neem to clear body acne, skin allergies, and stubborn itching.</p>
+            <div class="target-pill">🎯 For all skin types, especially body acne, prickly heat, and itchy skin</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Kuppaimeni Leaf Extract, Cold-Pressed Neem Oil, Virgin Coconut Oil & Mahua Oil</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹99</span><span class="orig-price">₹130</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              125 gm (135g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Kumkumadi Glow Soap</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Kashmiri Saffron • Sandalwood • Sweet Almond Oil • Goat Milk</div>
+            <p class="product-desc">Luxury bathing bar crafted with pure Kashmiri Saffron, Red Sandalwood, and Sweet Almond to brighten full-body tone and soften dry skin.</p>
+            <div class="target-pill">🎯 For all skin types seeking all-over skin radiance and softening</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Kashmiri Saffron Extract, Red Sandalwood Powder, Raw Goat Milk</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹99</span><span class="orig-price">₹130</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              125 gm (135g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Acne & Pimple Clear Soap</h3>
+              <span class="badge-pill">Pure Botanical</span>
+            </div>
+            <div class="product-tagline">Australian Tea Tree • Activated Bamboo Charcoal • Neem • Tulsi</div>
+            <p class="product-desc">Deep detoxifying bath soap featuring Activated Bamboo Charcoal and Tea Tree to draw out trapped sebum and control body breakouts.</p>
+            <div class="target-pill">🎯 For oily skin, active athletes, gym-goers, and body acne</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Activated Bamboo Charcoal, Tea Tree Essential Oil</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹99</span><span class="orig-price">₹130</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              125 gm (135g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Kasturi Manjal Herbal Soap</h3>
+              <span class="badge-pill">Customer Favorite</span>
+            </div>
+            <div class="product-tagline">Wild Kasturi Turmeric • Khus Vetiver • Sweet Almond Oil</div>
+            <p class="product-desc">Traditional South Indian bridal bath soap infused with wild non-staining Kasturi Turmeric to brighten skin and reduce unwanted body fuzz.</p>
+            <div class="target-pill">🎯 For all skin types, particularly for tan reduction and bridal prep</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Wild Kasturi Turmeric, Khus Vetiver</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹99</span><span class="orig-price">₹130</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              125 gm (135g)
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="category-section">
+      <div class="category-header">
+        <span>MILK CARE FORMULATIONS</span>
+        <span class="category-count">3 Products</span>
+      </div>
+      <div class="products-grid">
+    
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Goat Milk Moisturizing Soap</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Farm-Fresh Raw Goat Milk • Raw Shea Butter • Extra Virgin Olive Oil</div>
+            <p class="product-desc">Super-fatted creamy soap made with fresh raw goat milk and unrefined shea butter to deeply nourish dry, sensitive, or eczema-prone skin.</p>
+            <div class="target-pill">🎯 For dry, mature, peeling, or sensitive skin; safe for children</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Raw Farm Goat Milk, Unrefined Shea Butter, Extra Virgin Olive Oil</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹130</span><span class="orig-price">₹160</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              125 gm (135g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Goat Milk Active Face Cream</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Goat Milk Peptides • Ceramide Complex • Kashmiri Saffron • Niacinamide</div>
+            <p class="product-desc">Rich barrier-repairing facial cream packed with Goat Milk proteins and Ceramides to heal damaged barriers and give plump, dewy elasticity.</p>
+            <div class="target-pill">🎯 For dehydrated, damaged barrier, normal-to-dry, and mature skin</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Goat Milk Bio-Peptides, Ceramide Complex (NP, AP, EOP), Pure Saffron & Niacinamide</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹680</span><span class="orig-price">₹799</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              30 gm (110g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Goat Milk Water-Based Face Serum</h3>
+              <span class="badge-pill">New Launch</span>
+            </div>
+            <div class="product-tagline">Goat Milk Hydrosol • Triple Hyaluronic Acid • Fermented Rice Water</div>
+            <p class="product-desc">Weightless water-jelly serum that floods deep skin cells with Goat Milk hydration and Hyaluronic acid for glass-skin translucency.</p>
+            <div class="target-pill">🎯 For dehydrated oily skin, combination skin, and glass-skin seekers</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Goat Milk Whey Filtrate, Triple Molecular Hyaluronic Acid</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹490</span><span class="orig-price">₹599</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              20 ml (80g)
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="category-section">
+      <div class="category-header">
+        <span>COMBO CARE FORMULATIONS</span>
+        <span class="category-count">4 Products</span>
+      </div>
+      <div class="products-grid">
+    
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Acne & Pimple Clear Routine Combo</h3>
+              <span class="badge-pill">Customer Favorite</span>
+            </div>
+            <div class="product-tagline">Acne Clear Soap (125g) + Anti-Acne Face Serum (20ml)</div>
+            <p class="product-desc">Complete 2-step anti-blemish regimen: Purifying deep cleanser unclogs pores, while potent botanical serum shrinks active pimples overnight.</p>
+            <div class="target-pill">🎯 For stubborn pimples, whiteheads, blackheads, and oily breakouts</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Pure Australian Tea Tree, White Willow Bark</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹548</span><span class="orig-price">₹649</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              Soap (125g) + Serum (20ml) (220g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Bridal & Daily Skin Glow Combo</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Kumkumadi Soap (125g) + Kumkumadi Face Wash (50ml) + Kumkumadi Face Serum (20ml)</div>
+            <p class="product-desc">The royal 3-step Chettinad bridal radiance ritual. Cleanse, clarify, and deeply nourish with authentic Kashmiri Saffron and Sandalwood.</p>
+            <div class="target-pill">🎯 For brides, festival prep, and anyone desiring an lit-from-within golden glow</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Grade-A Kashmiri Saffron, Red Sandalwood & Goat Milk</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹1017</span><span class="orig-price">₹1250</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              Full 3-Step Radiance Set (320g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Karaikudi Sun Protection Combo</h3>
+              <span class="badge-pill">Customer Favorite</span>
+            </div>
+            <div class="product-tagline">Detan Face Gel (50g) + SPF 50 Botanical Sunscreen (50ml)</div>
+            <p class="product-desc">High-performance sun defense tailored for Tamil Nadu tropical heat. Shield against UV rays by day and cool sun tan by night.</p>
+            <div class="target-pill">🎯 For active outdoor commuters, sun-exposed skin, and tan prevention</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Non-Nano Zinc Oxide & Raspberry Seed, Cucumber & Kasturi Turmeric</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹809</span><span class="orig-price">₹950</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              Gel (50g) + Sunscreen (50ml) (220g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Hair Fall Rescue Combo</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Advanced Herbs Hair Oil (100ml) + Shikakai Herbal Shampoo (100ml)</div>
+            <p class="product-desc">The time-tested South Indian hair fall therapy. Nourish roots with 18-herb oil and cleanse with mild sulfate-free Shikakai shampoo.</p>
+            <div class="target-pill">🎯 For excessive hair fall, seasonal shedding, and thinning scalps</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Amla, Bringraj & Rosemary Infusion, Shikakai & Hibiscus</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹798</span><span class="orig-price">₹950</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              Oil (100ml) + Shampoo (100ml) (300g)
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="category-section">
+      <div class="category-header">
+        <span>GIFT SETS CARE FORMULATIONS</span>
+        <span class="category-count">2 Products</span>
+      </div>
+      <div class="products-grid">
+    
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Chettinad Botanical Glow Gift Box</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Kumkumadi Serum + Pure Rose Water + Kumkumadi Soap + Lip Lightening Balm</div>
+            <p class="product-desc">Exquisite luxury gift hamper box in Deep Forest Green with Champagne Gold foil seal. The complete 4-step royal radiance ritual.</p>
+            <div class="target-pill">🎯 A stunning gift for weddings, festive celebrations, and self-care indulgence</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> Kashmiri Saffron & Sandalwood, Steam-Distilled Rose Petals</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹928</span><span class="orig-price">₹1150</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              4-Piece Luxury Hamper Box (550g)
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 class="product-title">Z Naturals Complete Hair & Skin Ritual Gift Set</h3>
+              <span class="badge-pill">Bestseller</span>
+            </div>
+            <div class="product-tagline">Advanced Herbs Hair Oil + Shikakai Shampoo + Kasturi Manjal Soap + Detan Face Gel</div>
+            <p class="product-desc">The grand Chettinad self-care hamper. Comprehensive head-to-toe ritual combining our finest herbal hair therapies and skin-brightening formulations.</p>
+            <div class="target-pill">🎯 The definitive luxury head-to-toe organic grooming gift set</div>
+            <div style="font-size: 9px; color: #57534e; margin-top: 4px;"><strong>Botanicals:</strong> 18 Chettinad Herbs & Shikakai, Wild Kasturi Turmeric & Cucumber</div>
+          </div>
+          <div class="product-meta">
+            <div>
+              <span class="price-tag">₹1296</span><span class="orig-price">₹1550</span>
+            </div>
+            <div style="color: #78716c; font-size: 10px; font-weight: bold;">
+              4-Piece Head-to-Toe Hamper (650g)
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+</body>
+</html>
