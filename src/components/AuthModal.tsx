@@ -75,6 +75,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const isLoggedIn = customerProfile.isLoggedIn;
   const isInstantPincodeLocal = isKaraikudiPincode(instantPincode);
 
+  const fetchCityState = async (pin: string) => {
+    if (pin.length !== 6) return;
+    try {
+      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice?.length > 0) {
+          const po = data[0].PostOffice[0];
+          const detectedCity = po.District || po.Block || po.Name;
+          const detectedState = po.State || 'Tamil Nadu';
+          if (detectedCity) {
+            setInstantCity(detectedCity);
+            setCustomerCity(detectedCity);
+          }
+          if (detectedState) {
+            setInstantState(detectedState);
+            setCustomerState(detectedState);
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
+  };
+
   // Instant Login Handler (Option B)
   const handleInstantLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -579,10 +604,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                             maxLength={6}
                             value={instantPincode}
                             onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, '');
+                              const val = e.target.value.replace(/\D/g, '').slice(0, 6);
                               setInstantPincode(val);
                               if (val.length === 6) {
                                 setCustomerPincode(val);
+                                fetchCityState(val);
                               }
                             }}
                             placeholder="e.g. 630001"
