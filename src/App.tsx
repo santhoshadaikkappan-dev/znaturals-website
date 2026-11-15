@@ -18,7 +18,6 @@ import { CheckoutModal } from './components/CheckoutModal';
 import { AIBeautyAdvisor } from './components/AIBeautyAdvisor';
 import { FloatingAiButton } from './components/FloatingAiButton';
 import { SearchModal } from './components/SearchModal';
-import { PincodeCheckerModal } from './components/PincodeCheckerModal';
 import { AuthModal } from './components/AuthModal';
 import { AdminPortalModal } from './components/AdminPortalModal';
 import { NotificationToast } from './components/NotificationToast';
@@ -40,7 +39,6 @@ const MainStoreContent: React.FC = () => {
   const [selectedConcern, setSelectedConcern] = useState<SkinOrHairConcern | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isPincodeModalOpen, setIsPincodeModalOpen] = useState(false);
 
   // Filter products based on category, concern, and search
   const filteredProducts = PRODUCTS.filter((product) => {
@@ -88,7 +86,6 @@ const MainStoreContent: React.FC = () => {
       {/* 2. Sticky Minimal Header */}
       <Navbar
         onSearchClick={() => setIsSearchOpen(true)}
-        onOpenPincodeModal={() => setIsPincodeModalOpen(true)}
         onSelectCategory={(cat) => setSelectedCategory(cat as ProductCategory | null)}
         onSelectConcern={(con) => setSelectedConcern(con as SkinOrHairConcern | null)}
       />
@@ -112,7 +109,13 @@ const MainStoreContent: React.FC = () => {
         onSelectCategory={(cat) => setSelectedCategory(cat)}
       />
 
-      {/* 6. Signature Bestsellers Grid (Products Section) */}
+      {/* 6. Shop by Concern (Targeted Botanical Solutions) */}
+      <ShopByConcern
+        selectedConcern={selectedConcern}
+        onSelectConcern={(c) => setSelectedConcern(c)}
+      />
+
+      {/* 7. Signature Bestsellers Grid (Products Section) */}
       <ProductGrid
         products={filteredProducts}
         selectedCategory={selectedCategory}
@@ -120,12 +123,6 @@ const MainStoreContent: React.FC = () => {
         searchQuery={searchQuery}
         onClearFilters={handleClearFilters}
         onOpenAiAdvisor={() => setIsAiAdvisorOpen(true)}
-      />
-
-      {/* 7. Shop by Concern (Targeted Botanical Solutions - Placed After Products) */}
-      <ShopByConcern
-        selectedConcern={selectedConcern}
-        onSelectConcern={(c) => setSelectedConcern(c)}
       />
 
       {/* 8. Chettinad Heritage Botanical Story Section */}
@@ -158,11 +155,6 @@ const MainStoreContent: React.FC = () => {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectProduct={handleSelectProductFromSearch}
-      />
-
-      <PincodeCheckerModal
-        isOpen={isPincodeModalOpen}
-        onClose={() => setIsPincodeModalOpen(false)}
       />
 
       <AuthModal

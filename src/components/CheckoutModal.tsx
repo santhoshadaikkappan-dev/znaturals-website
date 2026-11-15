@@ -58,7 +58,7 @@ export const CheckoutModal: React.FC = () => {
   const [city, setCity] = useState(customerCity || 'Karaikudi');
   const [state, setState] = useState(customerState || 'Tamil Nadu');
   const [pincode, setPincode] = useState(customerPincode || '630001');
-  const [deliverySlot, setDeliverySlot] = useState<string>('Daily: 8:00 AM – 12:00 PM');
+  const [deliverySlot, setDeliverySlot] = useState<string>('Express Delivery');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Razorpay Online (UPI / GPay / PhonePe / Cards)');
   const [notes, setNotes] = useState('');
 
@@ -174,7 +174,7 @@ export const CheckoutModal: React.FC = () => {
             city,
             state,
             pincode,
-            deliverySlot: isKaraikudi ? deliverySlot : 'Express Courier (2–4 Days)',
+            deliverySlot: 'Express Delivery',
             notes,
             paymentMethod: 'Razorpay Online (UPI / GPay / PhonePe / Cards)',
             upiUtr: paymentId
@@ -204,7 +204,7 @@ export const CheckoutModal: React.FC = () => {
       city,
       state,
       pincode,
-      deliverySlot: isKaraikudi ? deliverySlot : 'Express Courier (2–4 Days)',
+      deliverySlot: 'Express Delivery',
       notes,
       paymentMethod
     });
@@ -237,7 +237,7 @@ export const CheckoutModal: React.FC = () => {
                 {completedOrder ? 'Order Confirmation' : 'Secure Checkout & Delivery'}
               </h2>
               <span className="text-[11px] text-charcoal/70">
-                {isKaraikudi ? 'Zone A: Karaikudi Local (Free Delivery)' : 'Zone B: Rest of India (Courier)'}
+                {isKaraikudi ? 'Direct Doorstep Delivery • Free' : 'Standard Courier Delivery'}
               </span>
             </div>
           </div>
@@ -260,7 +260,7 @@ export const CheckoutModal: React.FC = () => {
 
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-sage-green block mb-1">
-                  {completedOrder.zone}
+                  Chettinad Botanical Dispatch
                 </span>
                 <h3 className="font-editorial font-bold text-3xl text-deep-forest">
                   Thank you, {completedOrder.customerName}!
@@ -305,7 +305,7 @@ export const CheckoutModal: React.FC = () => {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-charcoal/60">Karaikudi Dispatch Helpline:</span>
+                  <span className="text-charcoal/60">Customer Dispatch Helpline:</span>
                   <a href="tel:9344087944" className="font-bold text-deep-forest font-mono underline">
                     +91 9344087944
                   </a>
@@ -475,32 +475,22 @@ export const CheckoutModal: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Delivery Zone Badge & Pricing Breakdown */}
-                {isKaraikudi ? (
-                  <div className="p-3 rounded-xl bg-emerald-50 text-emerald-900 text-xs border border-emerald-200 flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold block">Zone A: Karaikudi Local (100% Free Doorstep Delivery)</span>
-                      <span className="text-emerald-800 text-[11px]">
-                        Delivered daily between 8:00 AM – 4:00 PM by Z Naturals local fleet. Cash on Delivery is 100% free!
-                      </span>
+                {/* Delivery Fee Status Badge */}
+                {shippingFee === 0 ? (
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-900 text-xs border border-emerald-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span className="font-semibold">Doorstep Delivery Eligible:</span>
                     </div>
+                    <span className="font-bold text-emerald-800 font-mono text-xs px-2 py-0.5 bg-emerald-100 rounded-md">FREE (₹0)</span>
                   </div>
                 ) : (
-                  <div className="p-3 rounded-xl bg-blue-50 text-blue-900 text-xs border border-blue-200 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold flex items-center gap-1.5">
-                        <Truck className="w-4 h-4 text-blue-600" />
-                        Zone B: Courier Shipping to {city || 'Your City'}
-                      </span>
-                      <span className="font-bold font-mono text-sm">
-                        {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}
-                      </span>
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-900 text-xs border border-blue-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Truck className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <span className="font-semibold">Standard Delivery to {city || 'your address'}:</span>
                     </div>
-                    <div className="flex items-center gap-2 text-[11px] text-blue-800">
-                      <Scale className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                      <span>{deliveryInfo.slabDescription}</span>
-                    </div>
+                    <span className="font-bold font-mono text-xs">+₹{shippingFee}</span>
                   </div>
                 )}
               </div>
@@ -579,49 +569,6 @@ export const CheckoutModal: React.FC = () => {
                     className="w-full px-3 py-2 rounded-xl bg-white border border-warm-sand text-xs focus:outline-none focus:ring-1 focus:ring-deep-forest"
                   />
                 </div>
-
-                {/* Delivery Slot Selection (Karaikudi Only) */}
-                {isKaraikudi && (
-                  <div>
-                    <label className="block text-xs font-bold text-deep-forest mb-1.5 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-sage-green" />
-                      Karaikudi Local Delivery Slot *
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
-                        deliverySlot === 'Daily: 8:00 AM – 12:00 PM'
-                          ? 'border-deep-forest bg-deep-forest/5 font-semibold text-deep-forest'
-                          : 'border-warm-sand bg-white text-charcoal/70'
-                      }`}>
-                        <input
-                          type="radio"
-                          name="deliverySlot"
-                          value="Daily: 8:00 AM – 12:00 PM"
-                          checked={deliverySlot === 'Daily: 8:00 AM – 12:00 PM'}
-                          onChange={() => setDeliverySlot('Daily: 8:00 AM – 12:00 PM')}
-                          className="text-deep-forest"
-                        />
-                        <span className="text-xs">Morning: 8:00 AM – 12:00 PM</span>
-                      </label>
-
-                      <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
-                        deliverySlot === 'Daily: 12:00 PM – 4:00 PM'
-                          ? 'border-deep-forest bg-deep-forest/5 font-semibold text-deep-forest'
-                          : 'border-warm-sand bg-white text-charcoal/70'
-                      }`}>
-                        <input
-                          type="radio"
-                          name="deliverySlot"
-                          value="Daily: 12:00 PM – 4:00 PM"
-                          checked={deliverySlot === 'Daily: 12:00 PM – 4:00 PM'}
-                          onChange={() => setDeliverySlot('Daily: 12:00 PM – 4:00 PM')}
-                          className="text-deep-forest"
-                        />
-                        <span className="text-xs">Afternoon: 12:00 PM – 4:00 PM</span>
-                      </label>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* 3. Payment Method Routing */}
@@ -669,26 +616,24 @@ export const CheckoutModal: React.FC = () => {
 
                   {/* Option 2: Cash / Doorstep UPI */}
                   <label className={`p-3.5 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
-                    paymentMethod === 'Free Cash / UPI at Delivery (Karaikudi Exclusive)' || paymentMethod === 'Cash on Delivery (COD)'
+                    paymentMethod === 'Cash on Delivery (COD) / UPI at Doorstep' || paymentMethod === 'Cash on Delivery (COD)' || paymentMethod === 'Free Cash / UPI at Delivery (Karaikudi Exclusive)'
                       ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest shadow-xs'
                       : 'border-warm-sand bg-white text-charcoal/80 hover:border-champagne-gold'
                   }`}>
                     <input
                       type="radio"
                       name="paymentMethod"
-                      value={isKaraikudi ? 'Free Cash / UPI at Delivery (Karaikudi Exclusive)' : 'Cash on Delivery (COD)'}
-                      checked={paymentMethod === 'Free Cash / UPI at Delivery (Karaikudi Exclusive)' || paymentMethod === 'Cash on Delivery (COD)'}
-                      onChange={() => setPaymentMethod(isKaraikudi ? 'Free Cash / UPI at Delivery (Karaikudi Exclusive)' : 'Cash on Delivery (COD)')}
+                      value="Cash on Delivery (COD) / UPI at Doorstep"
+                      checked={paymentMethod === 'Cash on Delivery (COD) / UPI at Doorstep' || paymentMethod === 'Cash on Delivery (COD)' || paymentMethod === 'Free Cash / UPI at Delivery (Karaikudi Exclusive)'}
+                      onChange={() => setPaymentMethod('Cash on Delivery (COD) / UPI at Doorstep')}
                       className="mt-1 text-deep-forest"
                     />
                     <div className="text-xs space-y-0.5">
                       <span className="font-bold text-sm block">
-                        {isKaraikudi ? 'Free Cash / UPI at Delivery (Karaikudi Exclusive)' : 'Cash on Delivery (COD)'}
+                        Cash on Delivery (COD) / UPI at Doorstep
                       </span>
                       <p className="text-[11px] text-charcoal/70 leading-relaxed">
-                        {isKaraikudi 
-                          ? 'Pay by Cash or scan our delivery agent\'s UPI QR code at your doorstep between 8:00 AM – 4:00 PM. (₹0 Delivery Fee).'
-                          : 'Pay cash or UPI upon courier arrival at your destination.'}
+                        Pay conveniently with Cash or scan our delivery agent's UPI QR code upon arrival at your doorstep.
                       </p>
                     </div>
                   </label>
@@ -704,7 +649,7 @@ export const CheckoutModal: React.FC = () => {
 
                 <div className="flex justify-between items-center">
                   <span className="flex items-center gap-1.5">
-                    <span>Delivery Charge ({isKaraikudi ? 'Karaikudi Local' : 'Courier Slab'}):</span>
+                    <span>Delivery Charge:</span>
                   </span>
                   <span className="font-bold text-emerald-800">
                     {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}

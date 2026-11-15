@@ -12,11 +12,14 @@ import {
   LogOut,
   ShoppingBag,
   Leaf,
-  Phone
+  Phone,
+  User,
+  Check
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { requestBrowserGeolocation } from '../utils/geolocation';
 import { sendEmailOtp, verifyEmailOtp, signOutUser } from '../config/supabase';
+import { isKaraikudiPincode } from '../config/storeConfig';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -31,10 +34,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     updateCustomerProfile, 
     logoutCustomer, 
     addSavedAddress,
+    customerPincode,
     setCustomerPincode,
+    customerCity,
+    setCustomerCity,
+    customerState,
+    setCustomerState,
     showToast 
   } = useStore();
 
+  // Mode: Option B ("instant") vs Email OTP ("email")
+  const [authMethod, setAuthMethod] = useState<'instant' | 'email'>('instant');
+
+  // Option B Instant Form States
+  const [instantName, setInstantName] = useState(customerProfile.name || '');
+  const [instantPhone, setInstantPhone] = useState(customerProfile.phone || '');
+  const [instantPincode, setInstantPincode] = useState(customerPincode || '630001');
+  const [instantStreet, setInstantStreet] = useState('');
+  const [instantCity, setInstantCity] = useState(customerCity || 'Karaikudi');
+  const [instantState, setInstantState] = useState(customerState || 'Tamil Nadu');
+  const [isInstantLocating, setIsInstantLocating] = useState(false);
+
+  // Email OTP States
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -45,13 +66,89 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [newStreet, setNewStreet] = useState('');
   const [newLandmark, setNewLandmark] = useState('');
-  const [newCity, setNewCity] = useState('Karaikudi');
-  const [newState, setNewState] = useState('Tamil Nadu');
-  const [newPincode, setNewPincode] = useState('630001');
+  const [newCity, setNewCity] = useState(customerCity || 'Karaikudi');
+  const [newState, setNewState] = useState(customerState || 'Tamil Nadu');
+  const [newPincode, setNewPincode] = useState(customerPincode || '630001');
 
   if (!isOpen) return null;
 
   const isLoggedIn = customerProfile.isLoggedIn;
+  const isInstantPincodeLocal = isKaraikudiPincode(instantPincode);
+
+  // Instant Login Handler (Option B)
+  const handleInstantLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!instantName.trim()) {
+      showToast("Please enter your name");
+      return;
+    }
+    const cleanPhone = instantPhone.replace(/\D/g, '').slice(0, 10);
+    if (cleanPhone.length < 10) {
+      showToast("Please enter a valid 10-digit mobile number");
+      return;
+    }
+    const cleanPin = instantPincode.replace(/\D/g, '').slice(0, 6);
+    if (cleanPin.length !== 6) {
+      showToast("Please enter a valid 6-digit delivery pincode");
+      return;
+    }
+
+    const addrId = `addr_${Date.now()}`;
+
+    updateCustomerProfile({
+      id: `cust_${cleanPhone}`,
+      name: instantName.trim(),
+      phone: cleanPhone,
+      isLoggedIn: true,
+      addresses: [
+        {
+          id: addrId,
+          street: instantStreet.trim() || 'Doorstep Delivery Address',
+          city: instantCity,
+          state: instantState,
+          pincode: cleanPin,
+          isDefault: true
+        }
+      ]
+    });
+
+    setCustomerPincode(cleanPin);
+    setCustomerCity(instantCity);
+    setCustomerState(instantState);
+
+    const isLocal = isKaraikudiPincode(cleanPin);
+    showToast(`✓ Welcome, ${instantName.trim()}! ${isLocal ? 'Free Doorstep Delivery activated!' : 'Account ready for checkout.'}`);
+    if (onSuccess) onSuccess();
+    onClose();
+  };
+
+  // Instant GPS Auto-detect
+  const handleInstantGpsDetect = async () => {
+    setIsInstantLocating(true);
+    try {
+      const loc = await requestBrowserGeolocation();
+      if (loc.pincode) {
+        setInstantPincode(loc.pincode);
+        setCustomerPincode(loc.pincode);
+      }
+      if (loc.city) {
+        setInstantCity(loc.city);
+        setCustomerCity(loc.city);
+      }
+      if (loc.state) {
+        setInstantState(loc.state);
+        setCustomerState(loc.state);
+      }
+      if (loc.formattedAddress) {
+        setInstantStreet(loc.formattedAddress.split(',')[0]);
+      }
+      showToast(`📍 Location detected: ${loc.city} (${loc.pincode})`);
+    } catch (err: any) {
+      showToast(err.message || "Could not detect GPS location.");
+    } finally {
+      setIsInstantLocating(false);
+    }
+  };
 
   // 1. Send 6-Digit Email OTP
   const handleSendEmailOtp = async (e: React.FormEvent) => {
@@ -69,14 +166,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       showToast(`Verification code sent to ${email}! Check your inbox.`);
     } catch (err: any) {
       console.error("Send OTP error:", err);
-      // For testing if Supabase rate limits or invalid credentials in dev
       showToast(err.message || "Failed to send OTP code.");
     } finally {
       setIsSendingOtp(false);
     }
   };
 
-  // 3. Verify 6-Digit Email OTP
+  // 2. Verify 6-Digit Email OTP
   const handleVerifyEmailOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = otpCode.join('');
@@ -113,7 +209,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     updated[index] = val;
     setOtpCode(updated);
 
-    // Auto-focus next input
     if (val && index < 5) {
       const nextInput = document.getElementById(`email-otp-input-${index + 1}`);
       if (nextInput) nextInput.focus();
@@ -214,7 +309,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         </div>
 
         {/* Drawer Body */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6">
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
           
           {isLoggedIn ? (
             /* ========================================================
@@ -229,11 +324,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                     <h4 className="font-serif font-bold text-deep-forest text-base">
                       {customerProfile.name || 'Valued Customer'}
                     </h4>
-                    {customerProfile.email && (
-                      <p className="text-xs text-charcoal/70">{customerProfile.email}</p>
-                    )}
                     {customerProfile.phone && (
-                      <p className="text-xs text-charcoal/70 font-mono">+91 {customerProfile.phone}</p>
+                      <p className="text-xs text-charcoal/70 font-mono mt-0.5">+91 {customerPhoneFormatting(customerProfile.phone)}</p>
+                    )}
+                    {customerProfile.email && (
+                      <p className="text-xs text-charcoal/70 mt-0.5">{customerProfile.email}</p>
                     )}
                   </div>
                   <button
@@ -376,145 +471,298 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             </div>
           ) : (
             /* ========================================================
-               VIEW 2: FAST & SECURE EMAIL OTP LOGIN
+               VIEW 2: UNLOGGED IN CUSTOMER AUTH TABS
                ======================================================== */
-            <div className="space-y-6">
+            <div className="space-y-5">
               
-              {/* Brand Perks Pill */}
-              <div className="p-4 rounded-2xl bg-white border border-warm-sand/80 shadow-xs space-y-2">
-                <div className="text-xs font-bold text-deep-forest uppercase tracking-wider flex items-center gap-1.5">
+              {/* Auth Mode Toggle Tabs (Option B Quick Mobile vs Email Sign-In) */}
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-warm-sand/30 rounded-2xl border border-warm-sand/60">
+                <button
+                  type="button"
+                  onClick={() => setAuthMethod('instant')}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                    authMethod === 'instant'
+                      ? 'bg-deep-forest text-botanical-ivory shadow-xs'
+                      : 'text-deep-forest hover:bg-white/60'
+                  }`}
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Quick Sign-In</span>
+                  <span className="text-[9px] bg-champagne-gold/30 text-champagne-gold px-1.5 py-0.2 rounded-full uppercase">Fast</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthMethod('email')}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                    authMethod === 'email'
+                      ? 'bg-deep-forest text-botanical-ivory shadow-xs'
+                      : 'text-deep-forest hover:bg-white/60'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Email Sign-In</span>
+                </button>
+              </div>
+
+              {/* Brand Privileges Box */}
+              <div className="p-3.5 rounded-2xl bg-white border border-warm-sand/80 shadow-xs space-y-1.5">
+                <div className="text-[11px] font-bold text-deep-forest uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-champagne-gold" /> Member Privileges
                 </div>
-                <div className="text-xs text-charcoal/80 space-y-1.5">
+                <div className="text-xs text-charcoal/80 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sage-green">✓</span>
-                    <span>Exclusive Free COD Delivery in Karaikudi</span>
+                    <Check className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
+                    <span>Free Doorstep Delivery on Local & Express Orders</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sage-green">✓</span>
-                    <span>1-Click Reorder & Real-time Delivery Tracking</span>
+                    <Check className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
+                    <span>1-Click Fast Reorder & Live Order Updates</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sage-green">✓</span>
-                    <span>Saved Prescriptions from AI Skin & Hair Advisor</span>
+                    <Check className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
+                    <span>Prescriptions saved from AI Botanical Advisor</span>
                   </div>
                 </div>
               </div>
 
-              {/* EMAIL OTP LOGIN FORM (DIRECT & FRICTIONLESS) */}
-              <div className="space-y-4">
-                {!otpSent ? (
-                  /* Step 1: Enter Email */
-                  <form onSubmit={handleSendEmailOtp} className="space-y-4">
+              {/* TAB 1: OPTION B (INSTANT NAME, PHONE & PINCODE SIGN-IN) */}
+              {authMethod === 'instant' && (
+                <form onSubmit={handleInstantLogin} className="space-y-3.5">
+                  <div className="space-y-3 bg-white p-4 rounded-2xl border border-warm-sand/80 shadow-xs">
                     <div>
-                      <label className="block text-xs font-bold text-deep-forest mb-1.5">
-                        Enter your Email Address
+                      <label className="block text-xs font-bold text-deep-forest mb-1">
+                        Full Name *
                       </label>
                       <div className="relative">
-                        <Mail className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <User className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
-                          type="email"
+                          type="text"
                           required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="e.g. yourname@gmail.com"
-                          className="w-full pl-9 pr-3 py-3 rounded-xl bg-white border border-warm-sand text-xs font-medium focus:outline-none focus:border-deep-forest shadow-xs"
+                          value={instantName}
+                          onChange={(e) => setInstantName(e.target.value)}
+                          placeholder="e.g. Alagappan Chettiar"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs focus:outline-none focus:border-deep-forest"
                         />
                       </div>
-                      <p className="text-[11px] text-charcoal/60 mt-1">
-                        We will send a 6-digit verification code to your email for passwordless sign-in.
-                      </p>
                     </div>
 
-                    <button
-                      type="submit"
-                      disabled={isSendingOtp}
-                      className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50 active:scale-[0.99]"
-                    >
-                      {isSendingOtp ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
-                          <span>Sending Verification Code...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Send 6-Digit OTP</span>
-                          <ArrowRight className="w-4 h-4 text-champagne-gold" />
-                        </>
-                      )}
-                    </button>
-
-                    <div className="text-[10px] text-center text-charcoal/60 flex items-center justify-center gap-1.5 pt-2">
-                      <ShieldCheck className="w-3.5 h-3.5 text-sage-green" />
-                      <span>Secured with Supabase End-to-End Encryption</span>
-                    </div>
-                  </form>
-                ) : (
-                  /* Step 2: Enter 6-Digit OTP Code */
-                  <form onSubmit={handleVerifyEmailOtp} className="space-y-4">
-                    <div className="text-center space-y-1">
-                      <span className="text-xs font-bold text-sage-green uppercase tracking-wider">
-                        Enter Verification Code
-                      </span>
-                      <p className="text-xs text-charcoal/70">
-                        We have sent a 6-digit code to <strong className="text-deep-forest">{email}</strong>
-                      </p>
-                    </div>
-
-                    {/* 6 Clean Input Boxes */}
-                    <div className="flex justify-center gap-1.5 sm:gap-2 py-2">
-                      {otpCode.map((digit, i) => (
+                    <div>
+                      <label className="block text-xs font-bold text-deep-forest mb-1">
+                        Mobile Number (WhatsApp) *
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
-                          key={i}
-                          id={`email-otp-input-${i}`}
-                          type="text"
-                          maxLength={1}
-                          value={digit}
-                          onChange={(e) => handleOtpDigitChange(i, e.target.value)}
-                          onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                          className="w-10 sm:w-11 h-12 text-center font-mono font-extrabold text-xl rounded-xl bg-white border-2 border-warm-sand focus:border-deep-forest focus:outline-none shadow-xs"
+                          type="tel"
+                          required
+                          maxLength={10}
+                          value={instantPhone}
+                          onChange={(e) => setInstantPhone(e.target.value.replace(/\D/g, ''))}
+                          placeholder="10-digit mobile number"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-mono focus:outline-none focus:border-deep-forest"
                         />
-                      ))}
+                      </div>
                     </div>
 
-                    <button
-                      type="submit"
-                      disabled={isVerifying || otpCode.join('').length !== 6}
-                      className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50 active:scale-[0.99]"
-                    >
-                      {isVerifying ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
-                          <span>Verifying Code...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 text-champagne-gold" />
-                          <span>Verify & Enter Store</span>
-                        </>
+                    {/* Delivery Pincode with Auto-Detect Button */}
+                    <div>
+                      <label className="block text-xs font-bold text-deep-forest mb-1">
+                        Delivery Pincode (6-Digit) *
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <MapPin className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            required
+                            maxLength={6}
+                            value={instantPincode}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              setInstantPincode(val);
+                              if (val.length === 6) {
+                                setCustomerPincode(val);
+                              }
+                            }}
+                            placeholder="e.g. 630001"
+                            className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs font-mono focus:outline-none focus:border-deep-forest"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleInstantGpsDetect}
+                          disabled={isInstantLocating}
+                          className="px-3 py-2.5 rounded-xl border border-warm-sand bg-white text-deep-forest hover:bg-warm-sand/20 text-xs font-semibold flex items-center gap-1.5 flex-shrink-0"
+                          title="Detect via GPS"
+                        >
+                          <Navigation className={`w-3.5 h-3.5 text-sage-green ${isInstantLocating ? 'animate-spin' : ''}`} />
+                          <span className="hidden sm:inline">GPS</span>
+                        </button>
+                      </div>
+
+                      {/* Subtle Delivery Eligibility Feedback */}
+                      {instantPincode.length === 6 && (
+                        <div className="mt-1.5 text-[11px]">
+                          {isInstantPincodeLocal ? (
+                            <span className="text-emerald-800 font-semibold flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              Free Doorstep Delivery Eligible (₹0 Delivery Charge)
+                            </span>
+                          ) : (
+                            <span className="text-charcoal/70 flex items-center gap-1">
+                              <span>Standard Express Courier to {instantCity}</span>
+                            </span>
+                          )}
+                        </div>
                       )}
-                    </button>
-
-                    <div className="flex items-center justify-between text-xs text-charcoal/70 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setOtpSent(false)}
-                        className="underline hover:text-deep-forest"
-                      >
-                        Change Email
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSendEmailOtp}
-                        disabled={isSendingOtp}
-                        className="font-bold text-sage-green hover:underline flex items-center gap-1"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${isSendingOtp ? 'animate-spin' : ''}`} /> Resend OTP
-                      </button>
                     </div>
-                  </form>
-                )}
-              </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-deep-forest mb-1">
+                        Street Address / Door No (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={instantStreet}
+                        onChange={(e) => setInstantStreet(e.target.value)}
+                        placeholder="e.g. 14, Subramaniapuram 2nd Street"
+                        className="w-full px-3 py-2.5 rounded-xl bg-botanical-ivory/40 border border-warm-sand text-xs focus:outline-none focus:border-deep-forest"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical active:scale-[0.99]"
+                  >
+                    <span>Start Shopping & Save Details</span>
+                    <ArrowRight className="w-4 h-4 text-champagne-gold" />
+                  </button>
+
+                  <div className="text-[10px] text-center text-charcoal/60 flex items-center justify-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-sage-green" />
+                    <span>Instant Seamless Sign-In • No Passwords Needed</span>
+                  </div>
+                </form>
+              )}
+
+              {/* TAB 2: EMAIL SIGN-IN (PRESERVED AS REQUESTED) */}
+              {authMethod === 'email' && (
+                <div className="space-y-4">
+                  {!otpSent ? (
+                    /* Step 1: Enter Email */
+                    <form onSubmit={handleSendEmailOtp} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-deep-forest mb-1.5">
+                          Enter your Email Address
+                        </label>
+                        <div className="relative">
+                          <Mail className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="e.g. yourname@gmail.com"
+                            className="w-full pl-9 pr-3 py-3 rounded-xl bg-white border border-warm-sand text-xs font-medium focus:outline-none focus:border-deep-forest shadow-xs"
+                          />
+                        </div>
+                        <p className="text-[11px] text-charcoal/60 mt-1">
+                          We will send a 6-digit verification code to your email for passwordless sign-in.
+                        </p>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isSendingOtp}
+                        className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50 active:scale-[0.99]"
+                      >
+                        {isSendingOtp ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
+                            <span>Sending Verification Code...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Send 6-Digit OTP</span>
+                            <ArrowRight className="w-4 h-4 text-champagne-gold" />
+                          </>
+                        )}
+                      </button>
+
+                      <div className="text-[10px] text-center text-charcoal/60 flex items-center justify-center gap-1.5 pt-2">
+                        <ShieldCheck className="w-3.5 h-3.5 text-sage-green" />
+                        <span>Secured with Supabase End-to-End Encryption</span>
+                      </div>
+                    </form>
+                  ) : (
+                    /* Step 2: Enter 6-Digit OTP Code */
+                    <form onSubmit={handleVerifyEmailOtp} className="space-y-4">
+                      <div className="text-center space-y-1">
+                        <span className="text-xs font-bold text-sage-green uppercase tracking-wider">
+                          Enter Verification Code
+                        </span>
+                        <p className="text-xs text-charcoal/70">
+                          We have sent a 6-digit code to <strong className="text-deep-forest">{email}</strong>
+                        </p>
+                      </div>
+
+                      {/* 6 Clean Input Boxes */}
+                      <div className="flex justify-center gap-1.5 sm:gap-2 py-2">
+                        {otpCode.map((digit, i) => (
+                          <input
+                            key={i}
+                            id={`email-otp-input-${i}`}
+                            type="text"
+                            maxLength={1}
+                            value={digit}
+                            onChange={(e) => handleOtpDigitChange(i, e.target.value)}
+                            onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                            className="w-10 sm:w-11 h-12 text-center font-mono font-extrabold text-xl rounded-xl bg-white border-2 border-warm-sand focus:border-deep-forest focus:outline-none shadow-xs"
+                          />
+                        ))}
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isVerifying || otpCode.join('').length !== 6}
+                        className="w-full py-3.5 px-4 rounded-xl bg-deep-forest text-botanical-ivory font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-deep-forest-dark transition-all shadow-botanical disabled:opacity-50 active:scale-[0.99]"
+                      >
+                        {isVerifying ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
+                            <span>Verifying Code...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-champagne-gold" />
+                            <span>Verify & Enter Store</span>
+                          </>
+                        )}
+                      </button>
+
+                      <div className="flex items-center justify-between text-xs text-charcoal/70 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setOtpSent(false)}
+                          className="underline hover:text-deep-forest"
+                        >
+                          Change Email
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSendEmailOtp}
+                          disabled={isSendingOtp}
+                          className="font-bold text-sage-green hover:underline flex items-center gap-1"
+                        >
+                          <RefreshCw className={`w-3 h-3 ${isSendingOtp ? 'animate-spin' : ''}`} /> Resend OTP
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
 
             </div>
           )}
@@ -524,10 +772,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {/* Drawer Footer Seal */}
         <div className="p-4 bg-botanical-ivory border-t border-warm-sand/60 text-center text-[10px] text-charcoal/60 flex items-center justify-center gap-1.5 flex-shrink-0">
           <Leaf className="w-3 h-3 text-sage-green" />
-          <span>Z NATURALS — Botanical Beauty & Personal Care • Karaikudi</span>
+          <span>Z NATURALS — Chettinad Botanical Formulations</span>
         </div>
 
       </div>
     </div>
   );
 };
+
+function customerPhoneFormatting(phone: string): string {
+  const clean = phone.replace(/\D/g, '');
+  if (clean.length === 10) {
+    return `${clean.slice(0, 5)} ${clean.slice(5)}`;
+  }
+  return phone;
+}

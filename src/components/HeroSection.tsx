@@ -31,7 +31,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
               </span>
               <span className="text-champagne-gold font-serif text-xs">•</span>
               <span className="text-[11px] font-medium text-sage-green">
-                Karaikudi Exclusive COD
+                100% Botanical Care
               </span>
             </div>
 

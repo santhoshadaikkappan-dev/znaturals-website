@@ -35,33 +35,7 @@ export const CartDrawer: React.FC = () => {
     showToast
   } = useStore();
 
-  const [inputPincode, setInputPincode] = useState(customerPincode);
-  const [isLocating, setIsLocating] = useState(false);
-
   if (!isCartOpen) return null;
-
-  const handlePincodeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    verifyPincode(inputPincode);
-  };
-
-  const handleDetectGps = async () => {
-    setIsLocating(true);
-    try {
-      const loc = await requestBrowserGeolocation();
-      if (loc.pincode) {
-        setInputPincode(loc.pincode);
-        verifyPincode(loc.pincode);
-      }
-      if (loc.city) setCustomerCity(loc.city);
-      if (loc.state) setCustomerState(loc.state);
-      showToast(`📍 Location: ${loc.city} (${loc.pincode})`);
-    } catch (err: any) {
-      showToast(err.message || "Could not detect location.");
-    } finally {
-      setIsLocating(false);
-    }
-  };
 
   const handleProceedCheckout = () => {
     setIsCartOpen(false);
@@ -100,56 +74,6 @@ export const CartDrawer: React.FC = () => {
             >
               <X className="w-5 h-5" />
             </button>
-          </div>
-
-          {/* Location & Pincode Checker Strip */}
-          <div className="px-4 py-3 bg-warm-sand/20 border-b border-warm-sand/40 space-y-2">
-            <form onSubmit={handlePincodeSubmit} className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-sage-green flex-shrink-0" />
-              <input
-                type="text"
-                maxLength={6}
-                value={inputPincode}
-                onChange={(e) => setInputPincode(e.target.value.replace(/\D/g, ''))}
-                placeholder="Enter Pincode (e.g. 630001)"
-                className="flex-1 text-xs bg-white px-2.5 py-1.5 rounded-lg border border-warm-sand font-mono focus:outline-none focus:ring-1 focus:ring-deep-forest"
-              />
-              <button
-                type="submit"
-                className="px-3 py-1.5 bg-deep-forest text-botanical-ivory text-xs font-semibold rounded-lg hover:bg-deep-forest-dark"
-              >
-                Apply
-              </button>
-              <button
-                type="button"
-                onClick={handleDetectGps}
-                disabled={isLocating}
-                className="p-1.5 rounded-lg border border-warm-sand bg-white text-deep-forest hover:bg-warm-sand/30"
-                title="Detect my current location via GPS"
-              >
-                <Navigation className={`w-3.5 h-3.5 text-sage-green ${isLocating ? 'animate-spin' : ''}`} />
-              </button>
-            </form>
-
-            {/* Delivery Info Feedback Badge */}
-            <div className="text-[11px]">
-              {deliveryInfo.isKaraikudi ? (
-                <div className="flex items-center gap-1.5 text-emerald-800 font-medium">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                  <span><strong>Zone A: Karaikudi Local</strong> • FREE Delivery (8 AM – 4 PM)</span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between text-blue-900 font-medium bg-blue-50/80 px-2 py-1 rounded-md border border-blue-200">
-                  <div className="flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                    <span>Zone B Courier ({deliveryInfo.totalWeightFormatted})</span>
-                  </div>
-                  <span className="font-bold font-mono">
-                    {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Cart Items List */}
@@ -257,7 +181,7 @@ export const CartDrawer: React.FC = () => {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span>Delivery ({deliveryInfo.isKaraikudi ? 'Karaikudi Local' : 'Courier Slab'}):</span>
+                  <span>Estimated Delivery:</span>
                   <span className="font-bold text-emerald-800 font-mono">
                     {shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}
                   </span>

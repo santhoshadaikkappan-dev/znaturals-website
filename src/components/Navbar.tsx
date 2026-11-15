@@ -16,7 +16,7 @@ import { requestBrowserGeolocation } from '../utils/geolocation';
 
 interface NavbarProps {
   onSearchClick: () => void;
-  onOpenPincodeModal: () => void;
+  onOpenPincodeModal?: () => void;
   onSelectCategory: (category: string | null) => void;
   onSelectConcern: (concern: string | null) => void;
 }

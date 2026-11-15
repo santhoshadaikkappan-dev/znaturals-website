@@ -62,6 +62,7 @@ export type DeliveryZone = 'Zone A (Karaikudi Local)' | 'Zone B (Rest of India C
 
 export type PaymentMethod = 
   | 'Razorpay Online (UPI / GPay / PhonePe / Cards)'
+  | 'Cash on Delivery (COD) / UPI at Doorstep'
   | 'Free Cash / UPI at Delivery (Karaikudi Exclusive)'
   | 'Pay Online Now via Instant UPI (Zero Fee)'
   | 'Cash on Delivery (COD)' 
