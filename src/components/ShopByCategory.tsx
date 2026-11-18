@@ -63,21 +63,21 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
   onSelectCategory
 }) => {
   return (
-    <section className="py-12 bg-botanical-ivory">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-6 sm:py-12 bg-botanical-ivory">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 pb-4 border-b border-warm-sand/50">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 sm:mb-8 pb-3 sm:pb-4 border-b border-warm-sand/50">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-sage-green block mb-1">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-sage-green block mb-0.5 sm:mb-1">
               Curated Collections
             </span>
-            <h2 className="font-serif text-3xl sm:text-4xl text-deep-forest font-normal">
+            <h2 className="font-serif text-2xl sm:text-4xl text-deep-forest font-normal">
               Shop by Category
             </h2>
           </div>
           <button
             onClick={() => onSelectCategory(null)}
-            className={`mt-3 sm:mt-0 text-xs font-semibold uppercase tracking-wider transition-colors ${
+            className={`mt-2 sm:mt-0 text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-colors ${
               selectedCategory === null ? 'text-champagne-gold font-bold underline' : 'text-deep-forest hover:text-sage-green'
             }`}
           >
@@ -85,7 +85,8 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Compact 2 Columns on Mobile, 3 Columns on Desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
 
@@ -97,14 +98,14 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
                   const el = document.getElementById('bestsellers');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className={`group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 border ${
+                className={`group relative overflow-hidden rounded-xl sm:rounded-3xl cursor-pointer transition-all duration-300 border ${
                   isSelected 
                     ? 'ring-2 ring-champagne-gold shadow-botanical-lg scale-[1.02]' 
                     : 'border-warm-sand/60 hover:shadow-botanical hover:-translate-y-1'
                 }`}
               >
-                {/* Background Image Container */}
-                <div className="aspect-[4/3] w-full overflow-hidden bg-warm-sand/30">
+                {/* Background Image Container - Compact on Mobile */}
+                <div className="h-24 sm:h-auto sm:aspect-[4/3] w-full overflow-hidden bg-warm-sand/30">
                   <img
                     src={cat.image}
                     alt={cat.title}
@@ -113,26 +114,26 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
                 </div>
 
                 {/* Content Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-deep-forest/90 via-deep-forest/40 to-transparent flex flex-col justify-end p-6 text-botanical-ivory">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-bold text-champagne-gold uppercase tracking-wider">
+                <div className="absolute inset-0 bg-gradient-to-t from-deep-forest/95 via-deep-forest/60 to-transparent flex flex-col justify-end p-2 sm:p-6 text-botanical-ivory">
+                  <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                    <span className="text-[8px] sm:text-[11px] font-bold text-champagne-gold uppercase tracking-wider line-clamp-1">
                       {cat.subtitle}
                     </span>
-                    <span className="w-8 h-8 rounded-full bg-botanical-ivory/20 backdrop-blur-sm flex items-center justify-center text-botanical-ivory group-hover:bg-champagne-gold group-hover:text-deep-forest transition-colors">
-                      <ArrowUpRight className="w-4 h-4" />
+                    <span className="w-4 h-4 sm:w-8 sm:h-8 rounded-full bg-botanical-ivory/20 backdrop-blur-sm flex items-center justify-center text-botanical-ivory group-hover:bg-champagne-gold group-hover:text-deep-forest transition-colors flex-shrink-0">
+                      <ArrowUpRight className="w-2.5 h-2.5 sm:w-4 sm:h-4" />
                     </span>
                   </div>
 
-                  <h3 className="font-serif text-2xl font-bold mb-1">
+                  <h3 className="font-serif text-[11px] sm:text-2xl font-bold leading-tight line-clamp-1 sm:line-clamp-none mb-0.5 sm:mb-1">
                     {cat.title}
                   </h3>
 
-                  <p className="text-xs text-botanical-ivory/80 line-clamp-2 leading-relaxed font-sans mb-2">
+                  <p className="hidden sm:block text-xs text-botanical-ivory/80 line-clamp-2 leading-relaxed font-sans mb-2">
                     {cat.description}
                   </p>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-white/20 text-xs">
-                    <span className="text-white/70">{cat.count}</span>
+                  <div className="flex items-center justify-between pt-0.5 sm:pt-2 border-t border-white/20 text-[8px] sm:text-xs">
+                    <span className="text-white/75">{cat.count}</span>
                     <span className="font-semibold text-champagne-gold group-hover:underline">
                       {isSelected ? 'Selected ✓' : 'Explore →'}
                     </span>

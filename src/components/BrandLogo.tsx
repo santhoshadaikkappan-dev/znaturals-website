@@ -79,38 +79,28 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
       {/* Main Serif Z Body */}
       <path 
-        d="M 22 26 L 76 26 C 77.5 26 78 27 77.5 28.5 L 75 34 C 74.5 35 73.5 35.5 72 35.5 L 43 35.5 L 68 62 C 69.5 63.5 70 65 69.5 67 L 67 72 C 66.5 73.5 65.5 74 64 74 L 20 74 C 18.5 74 18 73 18.5 71.5 L 21 66 C 21.5 65 22.5 64.5 24 64.5 L 54 64.5 L 29 38 C 27.5 36.5 27 35 27.5 33 L 30 28 C 30.5 26.5 31.5 26 22 26 Z" 
+        d="M 18 24 L 82 24 C 84 24 85 26 84 29 L 81 35 C 80 37 78 38 74 38 L 46 38 L 74 72 C 76 74 76 76 75 78 L 73 83 C 72 85 70 86 66 86 L 16 86 C 14 86 13 84 14 81 L 17 75 C 18 73 20 72 24 72 L 53 72 L 25 38 C 23 36 23 34 24 32 L 26 27 C 27 25 29 24 18 24 Z" 
         fill={forestColor}
       />
 
-      {/* Organic Botanical Leaf Accent curving gracefully across the diagonal */}
+      {/* Two-Toned Botanical Leaf crossing through the diagonal */}
+      {/* Upper Golden Leaf Curve */}
       <path 
-        d="M 36 53 C 44 41 63 38 78 44 C 72 57 55 67 36 53 Z" 
+        d="M 15 58 C 35 38 65 34 88 44 C 68 52 42 58 15 58 Z" 
         fill={`url(#goldGrad-${size}-${theme})`}
-        stroke="#FFFFFF"
-        strokeWidth="0.5"
       />
-      {/* Delicate Leaf Spine & Vein */}
+      {/* Lower Forest Green Leaf Curve */}
       <path 
-        d="M 38 53 Q 56 49 76 45" 
-        stroke={forestColor} 
+        d="M 17 57 C 40 43 70 38 88 44 C 68 66 38 72 17 57 Z" 
+        fill={theme === 'light-on-dark' ? '#4A705B' : '#182E22'}
+      />
+      {/* Delicate Center Leaf Vein Line */}
+      <path 
+        d="M 17 57 C 48 50 68 47 88 44" 
+        stroke="#FFFFFF" 
         strokeWidth="1.2" 
         strokeLinecap="round" 
-        opacity="0.8"
-      />
-      <path 
-        d="M 48 51 Q 52 46 56 44" 
-        stroke={forestColor} 
-        strokeWidth="0.8" 
-        strokeLinecap="round" 
-        opacity="0.6"
-      />
-      <path 
-        d="M 58 49 Q 63 45 68 44" 
-        stroke={forestColor} 
-        strokeWidth="0.8" 
-        strokeLinecap="round" 
-        opacity="0.6"
+        opacity="0.9"
       />
     </svg>
   );

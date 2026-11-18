@@ -1,8 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-  <circle cx="50" cy="50" r="48" fill="#F5F0E6" stroke="#C5A16B" stroke-width="2"/>
-  <!-- Stylized Z in Deep Forest Green -->
-  <path d="M 28 32 L 72 32 C 73 32 74 33 74 34 L 74 38 C 74 39 73 40 72 40 L 44 40 L 68 64 C 69 65 70 66 70 68 L 70 72 C 70 73 69 74 68 74 L 28 74 C 27 74 26 73 26 72 L 26 68 C 26 67 27 66 28 66 L 56 66 L 32 42 C 31 41 30 40 30 38 L 30 34 C 30 33 31 32 28 32 Z" fill="#263D32"/>
-  <!-- Botanical Leaf Accent across the diagonal in Champagne Gold -->
-  <path d="M 38 52 C 45 42 62 40 74 46 C 70 56 56 64 38 52 Z" fill="#C5A16B"/>
-  <path d="M 40 52 Q 54 49 72 47" stroke="#263D32" stroke-width="1.2" stroke-linecap="round"/>
+  <circle cx="50" cy="50" r="48" fill="#FBF9F4" stroke="#C5A16B" stroke-width="2"/>
+  <defs>
+    <linearGradient id="goldFav" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C5A16B" />
+      <stop offset="50%" stop-color="#E6D3B1" />
+      <stop offset="100%" stop-color="#A88349" />
+    </linearGradient>
+  </defs>
+  <!-- Serif Z in Deep Botanical Forest Green -->
+  <path d="M 22 26 L 76 26 C 78 26 79 28 78 30 L 75 35 C 74 37 72 38 68 38 L 44 38 L 70 68 C 72 70 72 72 71 74 L 69 78 C 68 80 66 81 62 81 L 20 81 C 18 81 17 79 18 77 L 20 72 C 21 70 23 69 27 69 L 51 69 L 27 38 C 25 36 25 34 26 32 L 28 28 C 29 27 31 26 22 26 Z" fill="#1C3527"/>
+  <!-- Upper Golden Leaf Curve -->
+  <path d="M 18 54 C 36 36 64 32 84 42 C 66 50 42 54 18 54 Z" fill="url(#goldFav)"/>
+  <!-- Lower Forest Green Leaf Curve -->
+  <path d="M 20 53 C 40 40 68 36 84 42 C 66 62 38 68 20 53 Z" fill="#182E22"/>
+  <!-- Center Leaf Vein Line -->
+  <path d="M 20 53 C 46 47 66 45 84 42" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.9"/>
 </svg>
