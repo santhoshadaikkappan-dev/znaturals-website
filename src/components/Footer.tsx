@@ -38,7 +38,7 @@ export const Footer: React.FC = () => {
 
             <div className="pt-2 text-xs text-champagne-gold flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-champagne-gold animate-pulse" />
-              <span>Exclusive Free Cash on Delivery in Karaikudi</span>
+              <span>Free Cash on Delivery (COD) in Specific Locations</span>
             </div>
           </div>
 
@@ -79,10 +79,10 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Col 3: Karaikudi Hub & Doorstep Delivery */}
+          {/* Col 3: Chettinad Hub & Doorstep Delivery */}
           <div className="lg:col-span-3 space-y-3">
             <h4 className="font-serif font-bold text-base text-botanical-ivory uppercase tracking-wider">
-              Karaikudi Hub
+              Chettinad Dispatch Hub
             </h4>
             <div className="space-y-2.5 text-xs text-botanical-ivory/75">
               <div className="flex items-start gap-2">
@@ -97,7 +97,7 @@ export const Footer: React.FC = () => {
               <div className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-champagne-gold flex-shrink-0 mt-0.5" />
                 <span>
-                  <strong>Free COD Delivery Hours:</strong><br />
+                  <strong>Daily Express Delivery Hours:</strong><br />
                   Daily: 8:00 AM – 4:00 PM
                 </span>
               </div>

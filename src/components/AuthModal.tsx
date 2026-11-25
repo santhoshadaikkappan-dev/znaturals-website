@@ -534,7 +534,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 <div className="text-xs text-charcoal/80 space-y-1">
                   <div className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
-                    <span>Free Doorstep Delivery on Local & Express Orders</span>
+                    <span>Express Weight-Based Doorstep Delivery Across India</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
@@ -654,16 +654,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                     {/* Subtle Delivery Eligibility Feedback */}
                     {instantPincode.length === 6 && (
                       <div className="mt-1 text-[11px]">
-                        {isInstantPincodeLocal ? (
-                          <span className="text-emerald-800 font-semibold flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            Free Doorstep Delivery Eligible (₹0 Delivery Charge)
-                          </span>
-                        ) : (
-                          <span className="text-charcoal/70 flex items-center gap-1">
-                            <span>Standard Express Courier to {instantCity || instantState || 'your address'}</span>
-                          </span>
-                        )}
+                        <span className="text-emerald-800 font-semibold flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          Express Delivery Available to {instantCity || instantState || `Pincode ${instantPincode}`}
+                        </span>
                       </div>
                     )}
 

@@ -22,7 +22,7 @@ export const BRAND_CONFIG = {
     karaikudiLocation: "Near New Bus Stand, Karaikudi, Tamil Nadu 630001",
   },
   delivery: {
-    policyTitle: "Exclusive Free Cash on Delivery (COD) in Karaikudi",
+    policyTitle: "Free Cash on Delivery (COD) in Specific Locations",
     dailyWindow: "Daily Delivery: 8:00 AM – 4:00 PM",
     slots: [
       "Daily: 8:00 AM – 12:00 PM (Morning Slot)",
@@ -30,10 +30,10 @@ export const BRAND_CONFIG = {
     ],
   },
   weekendLiveStall: {
-    title: "Visit Our Weekend Live Experience Stall",
+    title: "Visit Our Weekend Live Experience Stall in Specific Locations",
     location: "Kallukatti Gandhi Square, Karaikudi",
     days: "Every Friday, Saturday & Sunday",
-    timings: "5:30 PM – 9:30 PM",
+    timings: "4:00 PM – 8:00 PM",
     perks: [
       "Free Live Botanical Skin Consultation",
       "Live Texture & Aroma Experience Bar",

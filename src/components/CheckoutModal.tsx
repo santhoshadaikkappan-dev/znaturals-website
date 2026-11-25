@@ -29,6 +29,7 @@ import { requestBrowserGeolocation } from '../utils/geolocation';
 import { launchRazorpayCheckout } from '../config/razorpay';
 import { downloadOrdersCSV } from '../utils/googleSheetsSync';
 import { printSingleOrderSlip } from '../utils/printOrder';
+import { calculateDelivery } from '../utils/delivery';
 import { Order, PaymentMethod } from '../types';
 
 export const CheckoutModal: React.FC = () => {
@@ -220,8 +221,20 @@ export const CheckoutModal: React.FC = () => {
   };
 
   const hasValidPincode = pincode.trim().length === 6;
-  const shippingFee = deliveryInfo.shippingFee;
+  const currentDelivery = hasValidPincode
+    ? calculateDelivery(pincode, cartTotalWeight, cartTotal)
+    : deliveryInfo;
+  const shippingFee = hasValidPincode ? currentDelivery.shippingFee : 0;
   const grandTotal = cartTotal + (hasValidPincode ? shippingFee : 0);
+
+  const isAddressComplete = Boolean(
+    name.trim().length >= 2 &&
+    phone.trim().replace(/\D/g, '').length >= 10 &&
+    address.trim().length >= 5 &&
+    state.trim().length > 0 &&
+    city.trim().length > 0 &&
+    pincode.trim().length === 6
+  );
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 md:p-6 animate-fadeIn">
@@ -240,7 +253,7 @@ export const CheckoutModal: React.FC = () => {
                 {completedOrder ? 'Order Confirmation' : 'Secure Checkout & Delivery'}
               </h2>
               <span className="text-[11px] text-charcoal/70">
-                {isKaraikudi ? 'Direct Doorstep Delivery • Free' : 'Standard Courier Delivery'}
+                Standard Weight-Based Delivery
               </span>
             </div>
           </div>
@@ -560,160 +573,198 @@ export const CheckoutModal: React.FC = () => {
 
                 {/* Delivery Fee Status & Weight-Based Slab Breakdown */}
                 {pincode.length === 6 ? (
-                  shippingFee === 0 ? (
-                    <div className="p-3 rounded-xl bg-emerald-50 text-emerald-900 text-xs border border-emerald-200/90 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                          <span className="font-bold text-deep-forest">Doorstep Delivery Eligible:</span>
-                        </div>
-                        <span className="font-bold text-emerald-800 font-mono text-xs px-2.5 py-0.5 bg-emerald-100 rounded-md">FREE (₹0)</span>
+                  <div className="p-3.5 rounded-xl bg-emerald-50/80 text-deep-forest text-xs border border-emerald-200/90 space-y-1.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                        <span className="font-bold text-deep-forest">
+                          Standard Delivery Charge to {city || state || 'your address'}:
+                        </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-emerald-800">
-                        <Scale className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                        <span>Parcel Weight: <strong>{cartTotalWeightFormatted}</strong> • 100% Free Doorstep Delivery</span>
-                      </div>
+                      <span className="font-bold font-mono text-sm text-deep-forest px-2.5 py-0.5 bg-emerald-100/90 border border-emerald-200 rounded-md">
+                        +₹{shippingFee}
+                      </span>
                     </div>
-                  ) : (
-                    <div className="p-3 rounded-xl bg-blue-50 text-blue-900 text-xs border border-blue-200/90 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Truck className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                          <span className="font-bold text-deep-forest">Standard Delivery to {city || state || 'your address'}:</span>
-                        </div>
-                        <span className="font-bold font-mono text-sm text-blue-900">+₹{shippingFee}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-blue-900 font-medium">
-                        <Scale className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                        <span>Parcel Weight: <strong>{cartTotalWeightFormatted}</strong> • {deliveryInfo.slabDescription}</span>
-                      </div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-deep-forest/80 font-medium">
+                      <Scale className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
+                      <span>Parcel Weight: <strong>{cartTotalWeightFormatted}</strong> • {currentDelivery.slabDescription}</span>
                     </div>
-                  )
+                  </div>
                 ) : (
-                  <div className="p-2.5 rounded-xl bg-botanical-ivory/80 text-charcoal/70 text-xs border border-warm-sand/80 flex items-center justify-between">
+                  <div className="p-3 rounded-xl bg-botanical-ivory/80 text-charcoal/70 text-xs border border-warm-sand/80 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Scale className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
                       <span>Total Parcel Weight: <strong>{cartTotalWeightFormatted}</strong></span>
                     </div>
-                    <span className="text-[11px] text-charcoal/60">Enter 6-digit Pincode to view delivery charge</span>
+                    <span className="text-[11px] text-charcoal/60 font-medium">Enter 6-digit Pincode to view delivery charge</span>
                   </div>
                 )}
               </div>
 
-              {/* 3. Payment Method Routing */}
-              <div className="space-y-3 pt-1 border-t border-warm-sand/60">
-                <label className="block text-xs font-bold text-deep-forest uppercase tracking-wider flex items-center gap-1.5">
-                  <CreditCard className="w-3.5 h-3.5 text-sage-green" /> Choose Payment Option:
-                </label>
-
-                <div className="grid grid-cols-1 gap-3">
-                  {/* Option 1: Razorpay Automated Gateway (GPay, PhonePe, Paytm, Cards) */}
-                  <label className={`p-3.5 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
-                    paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'
-                      ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest shadow-xs'
-                      : 'border-warm-sand bg-white text-charcoal/80 hover:border-champagne-gold'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Razorpay Online (UPI / GPay / PhonePe / Cards)"
-                      checked={paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'}
-                      onChange={() => setPaymentMethod('Razorpay Online (UPI / GPay / PhonePe / Cards)')}
-                      className="mt-1 text-deep-forest"
-                    />
-                    <div className="text-xs space-y-1 flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm block text-deep-forest flex items-center gap-1.5">
-                          <span>Pay Online via Razorpay</span>
-                          <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
-                            ⚡ Instant Auto-Confirm
-                          </span>
-                        </span>
+              {/* Sequential Checkout Gating: Address must be filled before Payment options and Submit */}
+              {!isAddressComplete ? (
+                <div className="space-y-4 pt-2 border-t border-warm-sand/60 animate-fadeIn">
+                  <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-300/80 text-amber-950 text-xs space-y-2.5 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                        !
                       </div>
-                      <p className="text-[11px] text-charcoal/70 leading-relaxed">
-                        Automatic 2-second order confirmation. Pay with Google Pay, PhonePe, Paytm, Supermoney, UPI QR, ATM Cards & NetBanking.
-                      </p>
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[10px] font-bold text-deep-forest/80">
-                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">PhonePe</span>
-                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Google Pay</span>
-                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Paytm</span>
-                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Supermoney</span>
-                        <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Debit / Credit Cards</span>
-                      </div>
-                    </div>
-                  </label>
-
-                  {/* Option 2: Cash / Doorstep UPI */}
-                  <label className={`p-3.5 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
-                    paymentMethod === 'Cash on Delivery (COD) / UPI at Doorstep' || paymentMethod === 'Cash on Delivery (COD)' || paymentMethod === 'Free Cash / UPI at Delivery (Karaikudi Exclusive)'
-                      ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest shadow-xs'
-                      : 'border-warm-sand bg-white text-charcoal/80 hover:border-champagne-gold'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Cash on Delivery (COD) / UPI at Doorstep"
-                      checked={paymentMethod === 'Cash on Delivery (COD) / UPI at Doorstep' || paymentMethod === 'Cash on Delivery (COD)' || paymentMethod === 'Free Cash / UPI at Delivery (Karaikudi Exclusive)'}
-                      onChange={() => setPaymentMethod('Cash on Delivery (COD) / UPI at Doorstep')}
-                      className="mt-1 text-deep-forest"
-                    />
-                    <div className="text-xs space-y-0.5">
-                      <span className="font-bold text-sm block">
-                        Cash on Delivery (COD) / UPI at Doorstep
+                      <span className="font-bold text-deep-forest text-xs uppercase tracking-wide">
+                        Step 1 Required: Complete Address Details Above
                       </span>
-                      <p className="text-[11px] text-charcoal/70 leading-relaxed">
-                        Pay conveniently with Cash or scan our delivery agent's UPI QR code upon arrival at your doorstep.
-                      </p>
                     </div>
-                  </label>
-                </div>
-              </div>
+                    <p className="text-[11.5px] text-charcoal/80 leading-relaxed pl-8">
+                      Please fill in your <strong>Full Name</strong>, <strong>10-digit Mobile Number</strong>, <strong>Delivery Street Address</strong>, <strong>State</strong>, <strong>City</strong>, and <strong>6-digit Pincode</strong> to unlock payment methods and proceed with your order.
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 pl-8 pt-1 text-[10px]">
+                      <span className={`px-2 py-0.5 rounded-md font-semibold ${name.trim().length >= 2 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`}>
+                        {name.trim().length >= 2 ? '✓ Name' : '✗ Name'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md font-semibold ${phone.trim().replace(/\D/g, '').length >= 10 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`}>
+                        {phone.trim().replace(/\D/g, '').length >= 10 ? '✓ Mobile' : '✗ Mobile (10-digits)'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md font-semibold ${address.trim().length >= 5 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`}>
+                        {address.trim().length >= 5 ? '✓ Address' : '✗ Street Address'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md font-semibold ${state.trim().length > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`}>
+                        {state.trim().length > 0 ? '✓ State' : '✗ State'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md font-semibold ${city.trim().length > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`}>
+                        {city.trim().length > 0 ? '✓ City' : '✗ City'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md font-semibold ${pincode.trim().length === 6 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`}>
+                        {pincode.trim().length === 6 ? '✓ Pincode' : '✗ 6-Digit Pincode'}
+                      </span>
+                    </div>
+                  </div>
 
-              {/* 4. Order Summary & Price Breakdown */}
-              <div className="p-4 rounded-2xl bg-botanical-ivory border border-warm-sand space-y-2 text-xs">
-                <div className="flex justify-between items-center text-charcoal/80">
-                  <span>Cart Items ({cart.length}) • Total Weight: {cartTotalWeightFormatted}</span>
-                  <span className="font-semibold text-deep-forest">₹{cartTotal}</span>
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full py-4 px-6 rounded-xl bg-gray-200 text-gray-500 font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed opacity-75"
+                  >
+                    <span>Complete Address Details to Select Payment & Proceed</span>
+                    <ArrowRight className="w-4 h-4 opacity-50" />
+                  </button>
                 </div>
+              ) : (
+                <>
+                  {/* 3. Payment Method Routing */}
+                  <div className="space-y-3 pt-1 border-t border-warm-sand/60 animate-fadeIn">
+                    <label className="block text-xs font-bold text-deep-forest uppercase tracking-wider flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5 text-sage-green" /> Choose Payment Option:
+                    </label>
 
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center gap-1.5">
-                    <Scale className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
-                    <span>Delivery Charge ({cartTotalWeightFormatted} Parcel Weight):</span>
-                  </span>
-                  <span className="font-bold text-emerald-800">
-                    {hasValidPincode ? (shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`) : 'Enter Pincode'}
-                  </span>
-                </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {/* Option 1: Razorpay Automated Gateway (GPay, PhonePe, Paytm, Cards) */}
+                      <label className={`p-3.5 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
+                        paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'
+                          ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest shadow-xs'
+                          : 'border-warm-sand bg-white text-charcoal/80 hover:border-champagne-gold'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="Razorpay Online (UPI / GPay / PhonePe / Cards)"
+                          checked={paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'}
+                          onChange={() => setPaymentMethod('Razorpay Online (UPI / GPay / PhonePe / Cards)')}
+                          className="mt-1 text-deep-forest"
+                        />
+                        <div className="text-xs space-y-1 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-sm block text-deep-forest flex items-center gap-1.5">
+                              <span>Pay Online via Razorpay</span>
+                              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                                ⚡ Instant Auto-Confirm
+                              </span>
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-charcoal/70 leading-relaxed">
+                            Automatic 2-second order confirmation. Pay with Google Pay, PhonePe, Paytm, Supermoney, UPI QR, ATM Cards & NetBanking.
+                          </p>
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[10px] font-bold text-deep-forest/80">
+                            <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">PhonePe</span>
+                            <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Google Pay</span>
+                            <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Paytm</span>
+                            <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Supermoney</span>
+                            <span className="px-2 py-0.5 bg-botanical-ivory border border-warm-sand rounded">Debit / Credit Cards</span>
+                          </div>
+                        </div>
+                      </label>
 
-                <div className="flex justify-between items-center pt-2 border-t border-warm-sand font-bold text-sm text-deep-forest">
-                  <span>Final Amount:</span>
-                  <span className="text-xl">₹{grandTotal}</span>
-                </div>
-              </div>
+                      {/* Option 2: Cash / Doorstep UPI */}
+                      <label className={`p-3.5 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all ${
+                        paymentMethod === 'Cash on Delivery (COD) / UPI at Doorstep' || paymentMethod === 'Cash on Delivery (COD)' || paymentMethod === 'Free Cash / UPI at Delivery (Karaikudi Exclusive)'
+                          ? 'border-deep-forest bg-deep-forest/5 ring-1 ring-deep-forest font-semibold text-deep-forest shadow-xs'
+                          : 'border-warm-sand bg-white text-charcoal/80 hover:border-champagne-gold'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="Cash on Delivery (COD) / UPI at Doorstep"
+                          checked={paymentMethod === 'Cash on Delivery (COD) / UPI at Doorstep' || paymentMethod === 'Cash on Delivery (COD)' || paymentMethod === 'Free Cash / UPI at Delivery (Karaikudi Exclusive)'}
+                          onChange={() => setPaymentMethod('Cash on Delivery (COD) / UPI at Doorstep')}
+                          className="mt-1 text-deep-forest"
+                        />
+                        <div className="text-xs space-y-0.5">
+                          <span className="font-bold text-sm block">
+                            Cash on Delivery (COD) / UPI at Doorstep
+                          </span>
+                          <p className="text-[11px] text-charcoal/70 leading-relaxed">
+                            Pay conveniently with Cash or scan our delivery agent's UPI QR code upon arrival at your doorstep.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
 
-              {/* Submit Order Button */}
-              <button
-                type="submit"
-                disabled={cart.length === 0 || isProcessingPayment}
-                className="w-full py-4 px-6 rounded-xl bg-deep-forest hover:bg-deep-forest-dark text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-botanical active:scale-[0.98] disabled:opacity-50"
-              >
-                {isProcessingPayment ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
-                    <span>Connecting to Razorpay Secure Portal...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>
-                      {paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'
-                        ? `Pay ₹${grandTotal} with Razorpay (Instant UPI / Cards)`
-                        : `Place Order with Doorstep Delivery • ₹${grandTotal}`}
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-champagne-gold" />
-                  </>
-                )}
-              </button>
+                  {/* 4. Order Summary & Price Breakdown */}
+                  <div className="p-4 rounded-2xl bg-botanical-ivory border border-warm-sand space-y-2 text-xs">
+                    <div className="flex justify-between items-center text-charcoal/80">
+                      <span>Cart Items ({cart.length}) • Total Weight: {cartTotalWeightFormatted}</span>
+                      <span className="font-semibold text-deep-forest">₹{cartTotal}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="flex items-center gap-1.5">
+                        <Scale className="w-3.5 h-3.5 text-sage-green flex-shrink-0" />
+                        <span>Delivery Charge ({cartTotalWeightFormatted} Parcel Weight):</span>
+                      </span>
+                      <span className="font-bold text-deep-forest">
+                        {hasValidPincode ? `+₹${shippingFee}` : 'Enter Pincode'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2 border-t border-warm-sand font-bold text-sm text-deep-forest">
+                      <span>Final Amount:</span>
+                      <span className="text-xl">₹{grandTotal}</span>
+                    </div>
+                  </div>
+
+                  {/* Submit Order Button */}
+                  <button
+                    type="submit"
+                    disabled={cart.length === 0 || isProcessingPayment}
+                    className="w-full py-4 px-6 rounded-xl bg-deep-forest hover:bg-deep-forest-dark text-botanical-ivory font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-botanical active:scale-[0.98] disabled:opacity-50"
+                  >
+                    {isProcessingPayment ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-champagne-gold" />
+                        <span>Connecting to Razorpay Secure Portal...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>
+                          {paymentMethod === 'Razorpay Online (UPI / GPay / PhonePe / Cards)'
+                            ? `Pay ₹${grandTotal} with Razorpay (Instant UPI / Cards)`
+                            : `Place Order with Doorstep Delivery • ₹${grandTotal}`}
+                        </span>
+                        <ArrowRight className="w-4 h-4 text-champagne-gold" />
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
 
             </form>
           )}

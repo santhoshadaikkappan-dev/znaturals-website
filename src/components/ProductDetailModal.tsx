@@ -56,7 +56,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     if (!inputPincode || inputPincode.length < 6) return;
     const res = verifyPincode(inputPincode);
     if (res.isKaraikudi) {
-      setPincodeFeedback('✓ 100% Free Doorstep Delivery in Karaikudi! Daily 8 AM – 4 PM.');
+      setPincodeFeedback(`✓ Express Delivery Available! Daily 8:00 AM – 4:00 PM (${res.slabDescription}).`);
     } else {
       setPincodeFeedback(`✓ Delivery Available via Express Courier (${res.slabDescription}).`);
     }

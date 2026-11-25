@@ -29,7 +29,7 @@ export const LiveStallSection: React.FC = () => {
 
             <div className="space-y-2">
               <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal leading-tight">
-                Visit Our Weekend Live Experience Stall in Karaikudi
+                Visit Our Weekend Live Experience Stall in Specific Locations
               </h2>
               <p className="font-editorial text-xl sm:text-2xl text-champagne-gold italic">
                 Touch, Smell & Feel Chettinad Botanicals in Person
@@ -38,7 +38,7 @@ export const LiveStallSection: React.FC = () => {
 
             <p className="font-sans text-sm sm:text-base text-botanical-ivory/80 leading-relaxed max-w-2xl">
               Experience the unadulterated aroma of cold-pressed botanicals, wild turmeric, and slow-cooked hair oils. 
-              Our botanical specialists are present every weekend in Karaikudi to diagnose your skin & scalp needs in real time.
+              Our botanical specialists are present every weekend to diagnose your skin & scalp needs in real time.
             </p>
 
             {/* Time & Location Details Grid */}
@@ -53,7 +53,7 @@ export const LiveStallSection: React.FC = () => {
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
                 <Clock className="w-5 h-5 text-champagne-gold mb-2" />
                 <div className="text-xs text-botanical-ivory/60 uppercase tracking-wider font-semibold">Evening Hours</div>
-                <div className="font-serif font-bold text-base text-botanical-ivory mt-0.5">5:30 PM – 9:30 PM</div>
+                <div className="font-serif font-bold text-base text-botanical-ivory mt-0.5">4:00 PM – 8:00 PM</div>
               </div>
 
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">

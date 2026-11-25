@@ -11,14 +11,14 @@ const PROMO_SLIDES = [
   },
   {
     id: 2,
-    line1: "Exclusive Free Cash on Delivery (COD) in Karaikudi",
+    line1: "Free Cash on Delivery (COD) in Specific Locations",
     line2: "Daily Express Delivery: 8:00 AM – 4:00 PM | Helpline: 9344087944",
     action: "pincode"
   },
   {
     id: 3,
-    line1: "Visit Our Weekend Live Experience Stall in Karaikudi",
-    line2: "Every Fri – Sun: 5:30 PM – 9:30 PM | Try Fresh Samples",
+    line1: "Visit Our Weekend Live Experience Stall in Specific Locations",
+    line2: "Every Fri – Sun: 4:00 PM – 8:00 PM | Try Fresh Samples",
     action: "stall"
   }
 ];

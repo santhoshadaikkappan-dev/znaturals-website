@@ -141,14 +141,14 @@ export const PincodeCheckerModal: React.FC<PincodeCheckerModalProps> = ({
             <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2 text-xs">
               <div className="flex items-center gap-2 font-bold text-sm">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                <span>Zone A: 100% Free Doorstep Delivery in Karaikudi!</span>
+                <span>Zone A: Express Doorstep Delivery in Karaikudi!</span>
               </div>
               <p className="text-emerald-800 leading-relaxed">
-                Pincode <strong>{inputPincode}</strong> qualifies for <strong>₹0 Delivery Charge</strong>. 
+                Pincode <strong>{inputPincode}</strong> qualifies for <strong>Express Local Delivery</strong> ({result.slabDescription}). 
                 Delivered daily between <strong>8:00 AM – 4:00 PM</strong> directly to your home via our local fleet.
               </p>
               <div className="pt-1 flex items-center justify-between text-[11px] text-emerald-900 font-semibold">
-                <span>Free COD & Direct UPI Accepted</span>
+                <span>COD & Direct UPI Accepted</span>
                 <span>Helpline: 9344087944</span>
               </div>
               <button
